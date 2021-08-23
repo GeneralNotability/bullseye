@@ -1,12 +1,12 @@
 <div class="accordion-item">
   <h2 class="accordion-header" id="headingWHOIS">
     <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseWHOIS" aria-expanded="false" aria-controls="collapseWhois">
-      WHOIS
+      <a href="https://whois-dev.toolforge.org/w/{{ ip }}/lookup">WHOIS</a>
     </button>
   </h2>
   <div id="collapseWHOIS" class="accordion-collapse collapse" aria-labelledby="headingWHOIS">
     <div class="accordion-body">
-      <p>ASN: {{ whois.asn }}</p>
+      <p>ASN: {{ whois.asn|default:'UNKNOWN' }}</p>
     </div>
   </div>
 </div>
