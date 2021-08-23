@@ -1,14 +1,12 @@
-{# Load the tag library #}
-{% load bootstrap4 %}
+{% extends 'bullseye/base.html' %}
+{% load bootstrap5 %}
 
-{# Load CSS and JavaScript #}
-{% bootstrap_css %}
-{% bootstrap_javascript jquery='full' %}
+{% block title %}
+{{ ip }}
+{% endblock %}
 
-{% bootstrap_messages %}
-
-
-<h2>{{ ip }}</h2>
+{% block content %}
 
 <h3>WHOIS</h3>
 <p>ASN: {{ whois.asn }}</p>
+{% endblock %}
