@@ -11,5 +11,8 @@
 {% if data_sources.whois %}
   {% include 'bullseye/data_components/whois.html' %}
 {% endif %}
+{% if data_sources.maxmind %}
+  {% include 'bullseye/data_components/maxmind.html' %}
+{% endif %}
 </div>
 {% endblock %}

@@ -1,0 +1,15 @@
+<div class="accordion-item">
+  <h2 class="accordion-header" id="headingMaxmind">
+    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMaxmind" aria-expanded="false" aria-controls="collapseWhois">
+      Maxmind Geolocation
+    </button>
+  </h2>
+  <div id="collapseMaxmind" class="accordion-collapse collapse" aria-labelledby="headingMaxmind">
+    <div class="accordion-body">
+      <p>Coordinates: ({{ maxmind.latitude }}, {{ maxmind.longitude }})</p>
+      <p>City: {{ maxmind.city }}</p>
+      <p>Region: {{ maxmind.region }}</p>
+      <p>Country: {{ maxmind.country }}</p>
+    </div>
+  </div>
+</div>
