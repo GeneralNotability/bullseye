@@ -7,7 +7,7 @@ def get_ip_info(request, ip):
     context['ip'] = ip
     whois_data = get_whois_data(ip)
     context['whois'] = {}
-    context['whois']['asn'] = whois_data['asn']
+    context['whois']['asn'] = whois_data.get('asn', 'UNKNOWN')
 
     return render(request, 'bullseye/ip.html', context)
 
