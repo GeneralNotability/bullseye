@@ -7,6 +7,26 @@
   <div id="collapseWHOIS" class="accordion-collapse collapse" aria-labelledby="headingWHOIS">
     <div class="accordion-body">
       <p>ASN: {{ whois.asn|default:'UNKNOWN' }}</p>
+      <p>ASN CIDR: {{ whois.asn_cidr|default:'UNKNOWN' }}</p>
+      <p>ASN Description: {{ whois.asn_description|default:'UNKNOWN' }}</p>
+      <div class="accordion">
+      {% for net in whois.nets %}
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="headingWHOIS{{ forloop.counter }}">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseWHOIS{{ forloop.counter }}" aria-expanded="false" aria-controls="collapseWhois{{ forloop.counter }}">
+		    {{ net.description }} ({{ net.cidr }})
+            </button>
+          </h2>
+          <div id="collapseWHOIS{{ forloop.counter }}" class="accordion-collapse collapse" aria-labelledby="headingWHOIS{{ forloop.counter }}">
+            <div class="accordion-body">
+              <p>CIDR: {{ net.cidr }}</p>
+              <p>City: {{ net.city }}</p>
+              <p>State: {{ net.state }}</p>
+              <p>Country: {{ net.country }}</p>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
     </div>
   </div>
 </div>
