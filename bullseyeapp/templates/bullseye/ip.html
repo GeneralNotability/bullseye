@@ -7,6 +7,9 @@
 
 {% block content %}
 
-<h3>WHOIS</h3>
-<p>ASN: {{ whois.asn }}</p>
+<div class="accordion">
+{% if data_sources.whois %}
+  {% include 'bullseye/data_components/whois.html' %}
+{% endif %}
+</div>
 {% endblock %}
