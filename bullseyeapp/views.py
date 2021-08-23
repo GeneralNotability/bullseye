@@ -1,3 +1,5 @@
+import socket
+
 from django.conf import settings
 from django.contrib.gis.geoip2 import GeoIP2
 from django.http import HttpResponse
@@ -27,6 +29,11 @@ def get_ip_info(request, ip):
             print(e)
             context['data_sources']['maxmind'] = False
     
+    try:
+        context['rdns'] = socket.gethostbyaddr(ip)[0]
+    except socket.herror:
+        pass
+
     return render(request, 'bullseye/ip.html', context)
 
 def get_ip_range_info(request, ip, cidr):
