@@ -6,7 +6,17 @@
   </h2>
   <div id="collapseIpcheck" class="accordion-collapse collapse" aria-labelledby="headingIpcheck">
     <div class="accordion-body">
-      <p>Webhost: {{ ipcheck.webhost.result.webhost }}</p>
+      <p>webhost: {{ ipcheck.webhost.result.webhost }}</p>
+      <p>proxycheck: {{ ipcheck.proxycheck.result.proxy }}</p>
+      {% if ipcheck.ipHub.result.block %}
+      <p>iphub: non-residential ISP ({{ ipcheck.ipHub.result.isp }})</p>
+      {% else %}
+      <p>iphub: residential ISP ({{ ipcheck.ipHub.result.isp }})</p>
+      {% endif %}
+      <p>TOR node: {{ ipcheck.tor.result.tornode }}</p>
+      <p>ComputeHosts: {{ ipcheck.computeHosts.result.cloud }}</p>
+      <p>StopForumSpam: {{ ipcheck.stopforumspam.result.appears }}</p>
+      <p>Spamcop: {{ ipcheck.spamcop.result.listed }}</p>
     </div>
   </div>
 </div>
