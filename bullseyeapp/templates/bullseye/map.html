@@ -1,19 +1,61 @@
 {% block bootstrap5_extra_head %}
-{% leaflet_js %}
-{% leaflet_css %}
+<link href="https://api.mapbox.com/mapbox-gl-js/v2.4.1/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v2.4.1/mapbox-gl.js"></script>
 {% endblock %}
 
-{% leaflet_map 'geo_map' %}
+{% if mapbox_token %}
 <div id='map' width="100%" style='height:400px'></div>
 <script>
-  let collection = {{ geoips|geojsonfeature|safe }};
-  function onEachFeature(feature, layer) {
-    if (feature.properties && feature.properties.description) {
-      layer.bindPopup(feature.properties.description);
-    }
-  }
-  function map_init(map, options) {
-    L.geoJson(collection, {onEachFeature: onEachFeature).addTo(map);
-  }
+  mapboxgl.accessToken = '{{ mapbox_token }}';
+  const map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/streets-v11',
+    zoom: 8
+  });
+  map.addControl(new mapboxgl.NavigationControl());
+  map.on('load', () => {
+    const geoips = {{ geoips|safe }};
+    map.addSource('geos', geoips);
+    map.addLayer({
+      'id': 'geos',
+      'type': 'circle',
+      'source': 'geos',
+      'paint': {
+        'circle-color': '#4264fb',
+        'circle-radius': 6,
+        'circle-stroke-width': 2,
+        'circle-stroke-color': '#ffffff'
+        }
+    });
+    const popup = new mapboxgl.Popup({closeButton: false, closeOnClick: false});
+    map.on('mouseenter', 'geos', (e) => {
+      // Change the cursor style as a UI indicator.
+      map.getCanvas().style.cursor = 'pointer';
+ 
+      // Copy coordinates array.
+      const coordinates = e.features[0].geometry.coordinates.slice();
+      const description = e.features[0].properties.description;
+ 
+      // Ensure that if the map is zoomed out such that multiple
+      // copies of the feature are visible, the popup appears
+      // over the copy being pointed to.
+      while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+        coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+      }
+ 
+      // Populate the popup and set its coordinates
+      // based on the feature found.
+      popup.setLngLat(coordinates).setHTML(description).addTo(map);
+    });
+ 
+    map.on('mouseleave', 'geos', () => {
+      map.getCanvas().style.cursor = '';
+      popup.remove();
+    });
+    map.flyTo({
+      center: geoips.data.features[0].geometry.coordinates
+    });
+  });
+
 </script>
-{% leaflet_map 'geoips' callback='window.map_init' %}
+{% endif %}

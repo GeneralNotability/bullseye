@@ -11,7 +11,13 @@ def get_ip_info(request, ip):
     context = {}
     context['ip'] = ip
     context['data_sources'] = {}
-    context['geoips'] = []
+    context['geoips'] = {
+        'type': 'geojson',
+        'data': {
+            'type': 'FeatureCollection',
+            'features': []
+        }
+    }
 
     try:
         whois_data = get_whois_data(ip)
@@ -26,15 +32,18 @@ def get_ip_info(request, ip):
             g = GeoIP2()
             context['maxmind'] = g.city(ip)
             context['data_sources']['maxmind'] = True
-            context['geoips'].append({
-              'type': 'Point',
-              'coordinates': {
-                'latitude': context['maxmind']['latitude'],
-                'longitude': context['maxmind']['longitude']
-              },
-              'properties': {
-                'description': 'Maxmind GeoLite2'
-              }
+            context['geoips']['data']['features'].append({
+                'type': 'Feature',
+                'geometry': {
+                    'type': 'Point',
+                    'coordinates': [
+                        context['maxmind']['longitude'],
+                        context['maxmind']['latitude']
+                    ]
+                },
+                'properties': {
+                    'description': 'Maxmind GeoLite2'
+                }
             })
         except Exception as e:
             print(e)
