@@ -1,13 +1,18 @@
 {% extends 'bullseye/base.html' %}
 {% load bootstrap5 %}
+{% load leaflet_tags %}
+
 
 {% block title %}
 {{ ip }}
 {% endblock %}
 
+
 {% block content %}
 
 <p>Hostname: {{ rdns|default:'unknown' }}</p>
+{% include 'bullseye/map.html' %}
+
 <div class="accordion">
 {% if data_sources.whois %}
   {% include 'bullseye/data_components/whois.html' %}

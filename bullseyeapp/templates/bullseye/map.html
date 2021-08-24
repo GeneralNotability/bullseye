@@ -1,0 +1,19 @@
+{% block bootstrap5_extra_head %}
+{% leaflet_js %}
+{% leaflet_css %}
+{% endblock %}
+
+{% leaflet_map 'geo_map' %}
+<div id='map' width="100%" style='height:400px'></div>
+<script>
+  let collection = {{ geoips|geojsonfeature|safe }};
+  function onEachFeature(feature, layer) {
+    if (feature.properties && feature.properties.description) {
+      layer.bindPopup(feature.properties.description);
+    }
+  }
+  function map_init(map, options) {
+    L.geoJson(collection, {onEachFeature: onEachFeature).addTo(map);
+  }
+</script>
+{% leaflet_map 'geoips' callback='window.map_init' %}

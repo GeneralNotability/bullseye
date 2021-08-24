@@ -11,6 +11,7 @@ def get_ip_info(request, ip):
     context = {}
     context['ip'] = ip
     context['data_sources'] = {}
+    context['geoips'] = []
 
     try:
         whois_data = get_whois_data(ip)
@@ -25,6 +26,16 @@ def get_ip_info(request, ip):
             g = GeoIP2()
             context['maxmind'] = g.city(ip)
             context['data_sources']['maxmind'] = True
+            context['geoips'].append({
+              'type': 'Point',
+              'coordinates': {
+                'latitude': context['maxmind']['latitude'],
+                'longitude': context['maxmind']['longitude']
+              },
+              'properties': {
+                'description': 'Maxmind GeoLite2'
+              }
+            })
         except Exception as e:
             print(e)
             context['data_sources']['maxmind'] = False
@@ -34,6 +45,8 @@ def get_ip_info(request, ip):
     except socket.herror:
         pass
 
+    if hasattr(settings, 'MAPBOX_TOKEN') and settings.MAPBOX_TOKEN:
+        context['mapbox_token'] = settings.MAPBOX_TOKEN
     return render(request, 'bullseye/ip.html', context)
 
 def get_ip_range_info(request, ip, cidr):
