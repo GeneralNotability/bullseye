@@ -126,4 +126,8 @@ STATIC_URL = '/static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-GEOIP_PATH = '/c/Users/Chris/workdir/bullseye/geodb'
+#GEOIP_PATH = ''
+
+#MAPBOX_TOKEN = ''
+
+#IPCHECK_KEY = ''
