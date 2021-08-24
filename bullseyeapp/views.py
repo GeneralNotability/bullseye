@@ -1,12 +1,11 @@
 import socket
 
 from django.conf import settings
-from django.contrib.gis.geoip2 import GeoIP2
 from django.http import HttpResponse
 from django.shortcuts import render
-from requests.exceptions import HTTPError
 
-from .utils import get_whois_data
+from .utils import get_ipcheck_data, \
+    get_maxmind_data, get_whois_data
 def get_ip_info(request, ip):
     context = {}
     context['ip'] = ip
@@ -19,36 +18,12 @@ def get_ip_info(request, ip):
         }
     }
 
-    try:
-        whois_data = get_whois_data(ip)
-        context['whois'] = whois_data
-        context['data_sources']['whois'] = True
-    # FIXME: bare except
-    except HTTPError:
-        context['data_sources']['whois'] = False
+    get_whois_data(ip, context)
 
-    if hasattr(settings, 'GEOIP_PATH') and settings.GEOIP_PATH:
-        try:
-            g = GeoIP2()
-            context['maxmind'] = g.city(ip)
-            context['data_sources']['maxmind'] = True
-            context['geoips']['data']['features'].append({
-                'type': 'Feature',
-                'geometry': {
-                    'type': 'Point',
-                    'coordinates': [
-                        context['maxmind']['longitude'],
-                        context['maxmind']['latitude']
-                    ]
-                },
-                'properties': {
-                    'description': 'Maxmind GeoLite2'
-                }
-            })
-        except Exception as e:
-            print(e)
-            context['data_sources']['maxmind'] = False
-    
+    get_maxmind_data(ip, context)
+
+    get_ipcheck_data(ip, context)
+
     try:
         context['rdns'] = socket.gethostbyaddr(ip)[0]
     except socket.herror:

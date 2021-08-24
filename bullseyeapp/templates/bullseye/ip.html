@@ -19,5 +19,8 @@
 {% if data_sources.maxmind %}
   {% include 'bullseye/data_components/maxmind.html' %}
 {% endif %}
+{% if data_sources.ipcheck %}
+  {% include 'bullseye/data_components/ipcheck.html' %}
+{% endif %}
 </div>
 {% endblock %}
