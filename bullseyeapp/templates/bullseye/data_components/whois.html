@@ -1,6 +1,6 @@
 <div class="accordion-item">
   <h2 class="accordion-header" id="headingWHOIS">
-    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseWHOIS" aria-expanded="false" aria-controls="collapseWhois">
+    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseWHOIS" aria-expanded="false" aria-controls="collapseWhois">
       <a href="https://whois-dev.toolforge.org/w/{{ ip }}/lookup">WHOIS</a>
     </button>
   </h2>
@@ -13,7 +13,7 @@
       {% for net in whois.nets %}
         <div class="accordion-item">
           <h2 class="accordion-header" id="headingWHOIS{{ forloop.counter }}">
-            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseWHOIS{{ forloop.counter }}" aria-expanded="false" aria-controls="collapseWhois{{ forloop.counter }}">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseWHOIS{{ forloop.counter }}" aria-expanded="false" aria-controls="collapseWhois{{ forloop.counter }}">
 		    {{ net.description }} ({{ net.cidr }})
             </button>
           </h2>
