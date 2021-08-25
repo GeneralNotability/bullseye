@@ -19,4 +19,5 @@ from django.urls import include, path
 urlpatterns = [
     path('ip/', include('bullseyeapp.urls')),
     path('admin/', admin.site.urls),
+#    url('', include('social_django.urls', namespace='social'))
 ]
