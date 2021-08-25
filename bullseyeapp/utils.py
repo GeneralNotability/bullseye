@@ -31,7 +31,8 @@ def get_maxmind_data(ip, context):
                     ]
                 },
                 'properties': {
-                    'description': 'Maxmind GeoLite2'
+                    'description': 'Maxmind GeoLite2',
+                    'color': 'blue'
                 }
             })
         except Exception as e:
