@@ -3,15 +3,22 @@
 {% load bootstrap5 %}
 
 {% block bootstrap5_content %}
-    <div class="container">
-      <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="#">Bullseye</a>
-      </nav>
-        <h1>{% block title %}(no title){% endblock %}</h1>
+  <div class="container">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-secondary">
+      <span class="navbar-brand mx-2">Bullseye</span>
+      <span class="navbar-text ms-auto mx-2">
+        {% if user.is_authenticated %}
+	Logged in as {{ user.username }}
+	{% else %}
+	Not logged in
+	{% endif %}
+      </span>
+    </nav>
+    <h1>{% block title %}(no title){% endblock %}</h1>
 
-        {% autoescape off %}{% bootstrap_messages %}{% endautoescape %}
+    {% autoescape off %}{% bootstrap_messages %}{% endautoescape %}
 
-        {% block content %}(no content){% endblock %}
-    </div>
+    {% block content %}(no content){% endblock %}
+  </div>
 
 {% endblock %}
