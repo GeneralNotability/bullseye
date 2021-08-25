@@ -21,7 +21,7 @@
         map.fitBounds(bounds, {maxZoom: 8});
     } else {
         // Fallback if there's no geolocation
-        map.setView([0, 0], 1});
+        map.setView([0, 0], 1);
     }
     L.tileLayer(server + '/' + style + '/{z}/{x}/{y}{r}.png').addTo(map);
     L.control.scale().addTo(map);
