@@ -16,7 +16,7 @@
         </a>
         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
           {% if user.is_authenticated %}
-	  <a class="dropdown-item" href="{% url "social:disconnect" "mediawiki"%}">Log out</a>
+	  <a class="dropdown-item" href="{% url "logout" %}">Log out</a>
           {% else %}
 	  <a class="dropdown-item" href="{% url "social:begin" "mediawiki"%}">Log in</a>
           {% endif %}
