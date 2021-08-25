@@ -14,7 +14,7 @@
     let bounds = L.latLngBounds(ipLocGeoJSON.features.map((c) => {
        return [c.geometry.coordinates[1], c.geometry.coordinates[0]]
     }));
-    let server = {{ mapserver }}i;
+    let server = '{{ mapserver }}';
     let style = 'osm-intl';
     let map = L.map('map').fitBounds(bounds, {maxZoom: 8});
     L.tileLayer(server + '/' + style + '/{z}/{x}/{y}{r}.png').addTo(map);
