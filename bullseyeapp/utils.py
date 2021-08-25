@@ -46,7 +46,6 @@ def get_ipcheck_data(ip, context):
             r = requests.get(f'https://ipcheck.toolforge.org/index.php?ip={ip}&api=true&key={settings.IPCHECK_KEY}')
             r.raise_for_status()
             context['ipcheck'] = r.json()
-            print(r.json())
             context['data_sources']['ipcheck'] = True
 
             # Summarize the important bits
