@@ -28,7 +28,7 @@ def get_ip_info(request, ip):
         pass
 
     context['cdnjs'] = settings.CDNJS
-    if hasattr(setting, 'MAPSERVER') and settings.MAPSERVER:
+    if hasattr(settings, 'MAPSERVER') and settings.MAPSERVER:
         context['mapserver'] = settings.MAPSERVER
     return render(request, 'bullseye/ip.html', context)
 
