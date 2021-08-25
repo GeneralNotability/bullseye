@@ -21,7 +21,7 @@ def get_maxmind_data(ip, context):
             g = GeoIP2()
             context['maxmind'] = g.city(ip)
             context['data_sources']['maxmind'] = True
-            context['geoips']['data']['features'].append({
+            context['geoips']['features'].append({
                 'type': 'Feature',
                 'geometry': {
                     'type': 'Point',

@@ -131,3 +131,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 #MAPBOX_TOKEN = ''
 
 #IPCHECK_KEY = ''
+
+CDNJS = 'https://cdnjs.cloudflare.com'
+
+MAPSERVER = ''

@@ -6,16 +6,14 @@ from django.shortcuts import render
 
 from .utils import get_ipcheck_data, \
     get_maxmind_data, get_whois_data
+
 def get_ip_info(request, ip):
     context = {}
     context['ip'] = ip
     context['data_sources'] = {}
     context['geoips'] = {
-        'type': 'geojson',
-        'data': {
-            'type': 'FeatureCollection',
-            'features': []
-        }
+        'type': 'FeatureCollection',
+        'features': []
     }
 
     get_whois_data(ip, context)
@@ -29,8 +27,9 @@ def get_ip_info(request, ip):
     except socket.herror:
         pass
 
-    if hasattr(settings, 'MAPBOX_TOKEN') and settings.MAPBOX_TOKEN:
-        context['mapbox_token'] = settings.MAPBOX_TOKEN
+    context['cdnjs'] = settings.CDNJS
+    if hasattr(setting, 'MAPSERVER') and settings.MAPSERVER:
+        context['mapserver'] = settings.MAPSERVER
     return render(request, 'bullseye/ip.html', context)
 
 def get_ip_range_info(request, ip, cidr):

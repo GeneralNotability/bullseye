@@ -10,7 +10,9 @@
 {% block content %}
 
 <p>Hostname: {{ rdns|default:'unknown' }}</p>
+{% if mapserver %}
 {% include 'bullseye/map.html' %}
+{% endif %}
 
 <div class="accordion">
 {% if data_sources.whois %}
