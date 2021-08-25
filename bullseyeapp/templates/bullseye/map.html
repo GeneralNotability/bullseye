@@ -11,12 +11,18 @@
         }
     }
     let ipLocGeoJSON = {{ geoips|safe }};
-    let bounds = L.latLngBounds(ipLocGeoJSON.features.map((c) => {
-       return [c.geometry.coordinates[1], c.geometry.coordinates[0]]
-    }));
     let server = '{{ mapserver }}';
     let style = 'osm-intl';
-    let map = L.map('map').fitBounds(bounds, {maxZoom: 8});
+    let map = L.map('map');
+    if (ipLocGeoJSON.features.length > 0) {
+        let bounds = L.latLngBounds(ipLocGeoJSON.features.map((c) => {
+            return [c.geometry.coordinates[1], c.geometry.coordinates[0]]
+        }));
+        map.fitBounds(bounds, {maxZoom: 8});
+    } else {
+        // Fallback if there's no geolocation
+        map.setView([0, 0], 1});
+    }
     L.tileLayer(server + '/' + style + '/{z}/{x}/{y}{r}.png').addTo(map);
     L.control.scale().addTo(map);
     map.whenReady(() => {
