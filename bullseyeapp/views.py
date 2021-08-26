@@ -1,12 +1,17 @@
 import socket
 
 from django.conf import settings
+from django.contrib.auth import logout
 from django.http import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 
 from .utils import get_ipcheck_data, \
     get_maxmind_data, get_userrights, \
     get_whois_data
+
+
+def get_landing_page(request):
+    return render(request, 'bullseye/index.html')
 
 def get_ip_info(request, ip):
     context = {}
@@ -38,3 +43,7 @@ def get_ip_info(request, ip):
 
 def get_ip_range_info(request, ip, cidr):
     return HttpResponse(f'Details of {ip}/{cidr}')
+
+def logout(request):
+    logout(request)
+    return redirect(request.META.get('HTTP_REFERER'))

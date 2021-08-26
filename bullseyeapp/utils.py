@@ -8,7 +8,7 @@ from django.contrib.gis.geoip2 import GeoIP2
 def has_group(key, wikidict):
     return 'groups' in wikidict and key in wikidict['groups']
 
-def get_userrights(request, context):
+def get_userrights(request):
     user = request.user
     userrights = ['anonymous']
     if not user.is_authenticated:

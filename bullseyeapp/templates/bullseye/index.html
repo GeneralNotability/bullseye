@@ -1,0 +1,31 @@
+{% extends 'bullseye/base.html' %}
+{% load bootstrap5 %}
+
+
+{% block title %}
+Bullseye
+{% endblock %}
+
+
+{% block content %}
+<form action=>
+  <div class="form-group">
+    <label for="inputIP">IP Address</label>
+    <input type="text" class="form-control" id="inputIP" aria-describedby="ipHelp" placeholder="IP">
+    <small id="ipHelp" class="form-text text-muted">IP address to look up.</small>
+  </div>
+  <button id="submitBtn" type="submit" class="btn btn-primary">Search</button>
+</form>
+
+<script>
+// TODO: figure out how to do this right
+document.getElementById("submitBtn").onclick = doSearch;
+
+function doSearch() {
+    const ip = document.getElementById("inputIP").value;
+    window.location = "{{ request.path }}" + ip;
+    return false;
+}
+</script>
+
+{% endblock %}
