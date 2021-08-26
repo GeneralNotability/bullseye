@@ -203,13 +203,13 @@ def get_spur_data(ip, context):
 
 def get_shodan_data(ip, context):
     if hasattr(settings, 'SHODAN_KEY') and settings.SHODAN_KEY:
-        #result = get_cached(ip, 'shodan')
+        result = get_cached(ip, 'shodan')
         result = None
         if not result:
             try:
                 api = shodan.Shodan(settings.SHODAN_KEY)
                 result = api.host(ip)
-                #update_cached(ip, 'shodan', result)
+                update_cached(ip, 'shodan', result)
             except Exception as e:
                 print(e)
                 context['data_sources']['shodan'] = False
