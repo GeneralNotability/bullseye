@@ -29,8 +29,10 @@ def get_ip_info(request, ip):
 
     utils.get_ipcheck_data(ip, context)
 
-    authorized_groups = set(['sysop', 'checkuser'])
-    if authorized_groups.intersection(set(context['userrights'])):
+    authorized_groups = set(['steward', 'checkuser'])
+
+    if authorized_groups.intersection(set(context['userrights'])) or\
+            request.user.filter(name='trusted').exists():
         utils.get_spur_data(ip, context)
 
     try:
