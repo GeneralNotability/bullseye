@@ -3,6 +3,7 @@ import json
 import requests
 from requests.exceptions import HTTPError
 
+import shodan
 from django.conf import settings
 from django.contrib.gis.geoip2 import GeoIP2
 from django.db.models import Model
@@ -198,3 +199,47 @@ def get_spur_data(ip, context):
 
     else:
         context['data_sources']['spur'] = False
+
+
+def get_shodan_data(ip, context):
+    if hasattr(settings, 'SHODAN_KEY') and settings.SHODAN_KEY:
+        #result = get_cached(ip, 'shodan')
+        result = None
+        if not result:
+            try:
+                api = shodan.Shodan(settings.SHODAN_KEY)
+                result = api.host(ip)
+                #update_cached(ip, 'shodan', result)
+            except Exception as e:
+                print(e)
+                context['data_sources']['shodan'] = False
+                return
+        print(result)
+        context['shodan'] = result
+        context['data_sources']['shodan'] = True
+        if 'isp' in result:
+            context['isp'] = result['isp']
+
+        if 'longitude' in result and 'latitude' in result:
+            context['geoips']['features'].append({
+                'type': 'Feature',
+                'geometry': {
+                    'type': 'Point',
+                    'coordinates': [
+                        result['longitude'],
+                        result['latitude']
+                    ]
+                },
+                'properties': {
+                    'description': 'Shodan',
+                    'color': 'orange'
+                }
+            })
+        context['shodan']['open_ports'] = ', '.join([str(x) for x in result['ports']])
+        context['shodan']['host_list'] = ', '.join(result['hostnames'])
+        context['shodan']['domain_list'] = ', '.join(result['domains'])
+        # summary = []
+
+        # context['shodan']['summary'] = ', '.join(summary)
+    else:
+        context['data_sources']['shodan'] = False

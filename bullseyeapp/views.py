@@ -35,6 +35,8 @@ def get_ip_info(request, ip):
             request.user.groups.filter(name='trusted').exists():
         utils.get_spur_data(ip, context)
 
+    utils.get_shodan_data(ip, context)
+
     try:
         context['rdns'] = socket.gethostbyaddr(ip)[0]
     except socket.herror:

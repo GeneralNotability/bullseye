@@ -1,0 +1,19 @@
+<div class="accordion-item">
+  <h2 class="accordion-header" id="headingShodan">
+    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseShodan" aria-expanded="false" aria-controls="collapseWhois">
+      Shodan
+    </button>
+  </h2>
+  <div id="collapseShodan" class="accordion-collapse collapse" aria-labelledby="headingShodan">
+    <div class="accordion-body">
+      <p>Open ports: {{ shodan.open_ports }}</p>
+      <p>Coordinates: ({{ shodan.latitude }}, {{ shodan.longitude }})</p>
+      <p>City: {{ shodan.city }}</p>
+      <p>Region: {{ shodan.region_code }}</p>
+      <p>Country: {{ shodan.country_name }}</p>
+      <p>OS: {{ shodan.os }}</p>
+      <p>Associated hostnames: {{ shodan.host_list }}</p>
+      <p>Associated domains: {{ shodan.domain_list }}</p>
+    </div>
+  </div>
+</div>

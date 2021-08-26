@@ -10,6 +10,7 @@
 {% block content %}
 
 <p>Hostname: {{ rdns|default:'unknown' }}</p>
+<p>ISP: {{ isp|default:'unknown' }}</p>
 {% if mapserver %}
 {% include 'bullseye/map.html' %}
 {% endif %}
@@ -26,6 +27,9 @@
 {% endif %}
 {% if data_sources.spur %}
   {% include 'bullseye/data_components/spur.html' %}
+{% endif %}
+{% if data_sources.shodan %}
+  {% include 'bullseye/data_components/shodan.html' %}
 {% endif %}
 </div>
 {% endblock %}
