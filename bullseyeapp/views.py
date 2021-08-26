@@ -5,7 +5,8 @@ from django.http import HttpResponse
 from django.shortcuts import render
 
 from .utils import get_ipcheck_data, \
-    get_maxmind_data, get_whois_data
+    get_maxmind_data, get_userrights, \
+    get_whois_data
 
 def get_ip_info(request, ip):
     context = {}
@@ -15,6 +16,9 @@ def get_ip_info(request, ip):
         'type': 'FeatureCollection',
         'features': []
     }
+
+    # TODO: cache this in the User model somehow
+    context['userrights'] = get_userrights(request)
 
     get_whois_data(ip, context)
 

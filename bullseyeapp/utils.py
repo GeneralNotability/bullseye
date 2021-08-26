@@ -5,6 +5,37 @@ from django.conf import settings
 from django.contrib.gis.geoip2 import GeoIP2
 
 
+def has_group(key, wikidict):
+    return 'groups' in wikidict and key in wikidict['groups']
+
+def get_userrights(request, context):
+    user = request.user
+    userrights = ['anonymous']
+    if not user.is_authenticated:
+        return
+    try:
+        payload = {
+            'action': 'query',
+            'meta': 'globaluserinfo',
+            'guiuser': user.username,
+            'guiprop': 'groups|merged',
+            'format': 'json'
+        }
+        r = requests.get('https://www.mediawiki.org/w/api.php', params=payload)
+        results = r.json()
+        if any(has_group('sysop', x) for x in results['query']['globaluserinfo']['merged']):
+            userrights.append('sysop')
+        if 'global-sysop' in results['query']['globaluserinfo']['groups']:
+            userrights.append('global-sysop')
+        if any(has_group('checkuser', x) for x in results['query']['globaluserinfo']['merged']):
+            userrights.append('checkuser')
+        if 'steward' in results['query']['globaluserinfo']['groups']:
+            userrights.append('steward')
+    except HTTPError as e:
+        print(e)
+    return userrights
+
+
 def get_whois_data(ip, context):
     try:
         r = requests.get(f'https://whois.toolforge.org/w/{ip}/lookup/json')
