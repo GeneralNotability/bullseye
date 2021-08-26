@@ -237,8 +237,15 @@ def get_shodan_data(ip, context):
         context['shodan']['open_ports'] = ', '.join([str(x) for x in result['ports']])
         context['shodan']['host_list'] = ', '.join(result['hostnames'])
         context['shodan']['domain_list'] = ', '.join(result['domains'])
-        # summary = []
+        summary = []
 
-        # context['shodan']['summary'] = ', '.join(summary)
+        if 80 in result['ports'] or 443 in result['ports']:
+            summary.append('webhost')
+        if 1194 in result['ports']:
+            summary.append('OpenVPN')
+        if 3128 in result['ports']:
+            summary.append('squid')
+
+        context['shodan']['summary'] = ', '.join(summary)
     else:
         context['data_sources']['shodan'] = False
