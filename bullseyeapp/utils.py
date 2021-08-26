@@ -1,8 +1,13 @@
+import datetime
+import json
 import requests
 from requests.exceptions import HTTPError
 
 from django.conf import settings
 from django.contrib.gis.geoip2 import GeoIP2
+from django.db.models import Model
+
+from .models import CachedResult
 
 
 def has_group(key, wikidict):
@@ -22,133 +27,169 @@ def get_userrights(request):
             'format': 'json'
         }
         r = requests.get('https://www.mediawiki.org/w/api.php', params=payload)
-        results = r.json()
-        if any(has_group('sysop', x) for x in results['query']['globaluserinfo']['merged']):
+        result = r.json()
+        if any(has_group('sysop', x) for x in result['query']['globaluserinfo']['merged']):
             userrights.append('sysop')
-        if 'global-sysop' in results['query']['globaluserinfo']['groups']:
+        if 'global-sysop' in result['query']['globaluserinfo']['groups']:
             userrights.append('global-sysop')
-        if any(has_group('checkuser', x) for x in results['query']['globaluserinfo']['merged']):
+        if any(has_group('checkuser', x) for x in result['query']['globaluserinfo']['merged']):
             userrights.append('checkuser')
-        if 'steward' in results['query']['globaluserinfo']['groups']:
+        if 'steward' in result['query']['globaluserinfo']['groups']:
             userrights.append('steward')
     except HTTPError as e:
         print(e)
     return userrights
 
+def get_cached(ip, source):
+    try:
+        cached = CachedResult.objects.get(ip_addr=ip, source=source)
+        print(cached.updated)
+        if cached.updated > datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=3):
+            return cached.result
+        return None
+    except CachedResult.DoesNotExist:
+        return None
+
+def update_cached(ip, source, result):
+    try:
+        cached = CachedResult.objects.get(ip_addr=ip, source=source)
+    except CachedResult.DoesNotExist:
+        cached = CachedResult(ip_addr=ip, source=source)
+    cached.result = result
+    cached.save()
 
 def get_whois_data(ip, context):
-    try:
-        r = requests.get(f'https://whois.toolforge.org/w/{ip}/lookup/json')
-        r.raise_for_status()
-        context['whois'] = r.json()
-        context['data_sources']['whois'] = True
-    except HTTPError as e:
-        print(e)
-        context['data_sources']['whois'] = False
+    result = get_cached(ip, 'whois')
+    if not result:
+        try:
+            r = requests.get(f'https://whois.toolforge.org/w/{ip}/lookup/json')
+            r.raise_for_status()
+            result = r.json()
+            update_cached(ip, 'whois', result)
+        except HTTPError as e:
+            print(e)
+            context['data_sources']['whois'] = False
+            return
+
+    context['whois'] = result
+    context['data_sources']['whois'] = True
 
 def get_maxmind_data(ip, context):
     if hasattr(settings, 'GEOIP_PATH') and settings.GEOIP_PATH:
-        try:
-            g = GeoIP2()
-            context['maxmind'] = g.city(ip)
-            context['data_sources']['maxmind'] = True
-            context['geoips']['features'].append({
-                'type': 'Feature',
-                'geometry': {
-                    'type': 'Point',
-                    'coordinates': [
-                        context['maxmind']['longitude'],
-                        context['maxmind']['latitude']
-                    ]
-                },
-                'properties': {
-                    'description': 'Maxmind GeoLite2',
-                    'color': 'blue'
-                }
-            })
-        except Exception as e:
-            context['data_sources']['maxmind'] = False
+        result = get_cached(ip, 'maxmind')
+        if not result:
+            try:
+                g = GeoIP2()
+                result = g.city(ip)
+                update_cached(ip, 'maxmind', result)
+            except Exception as e:
+                context['data_sources']['maxmind'] = False
+                return
+
+        context['maxmind'] = result
+        context['data_sources']['maxmind'] = True
+        context['geoips']['features'].append({
+            'type': 'Feature',
+            'geometry': {
+                'type': 'Point',
+                'coordinates': [
+                    result['longitude'],
+                    result['latitude']
+                ]
+            },
+            'properties': {
+                'description': 'Maxmind GeoLite2',
+                'color': 'blue'
+            }
+        })
     else:
         context['data_sources']['maxmind'] = False
 
 def get_ipcheck_data(ip, context):
     if hasattr(settings, 'IPCHECK_KEY') and settings.IPCHECK_KEY:
-        try:
-            r = requests.get(f'https://ipcheck.toolforge.org/index.php?ip={ip}&api=true&key={settings.IPCHECK_KEY}')
-            r.raise_for_status()
-            context['ipcheck'] = r.json()
-            context['data_sources']['ipcheck'] = True
+        result = get_cached(ip, 'ipcheck')
+        if not result:
+            try:
+                r = requests.get(f'https://ipcheck.toolforge.org/index.php?ip={ip}&api=true&key={settings.IPCHECK_KEY}')
+                r.raise_for_status()
+                result = r.json()
+                update_cached(ip, 'ipcheck', result)
+            except HTTPError:
+                context['data_sources']['ipcheck'] = False
+                return
 
-            # Summarize the important bits
-            summary = []
-            if context['ipcheck']['webhost']['result']['webhost']:
-                summary.append('webhost')
-            if context['ipcheck']['proxycheck']['result']['proxy']:
-                summary.append('proxy (proxycheck)')
-            if context['ipcheck']['stopforumspam']['result']['appears']:
-                summary.append('on SFS blacklist')
-            if not context['ipcheck']['computeHosts']['result']['cloud'].startswith('This IP is not'):
-                summary.append(f"cloud ({context['ipcheck']['computeHosts']['result']['cloud']})")
-            if context['ipcheck']['spamcop']['result']['listed']:
-                summary.append('on SpamCop blacklist')
-            if context['ipcheck']['tor']['result']['tornode']:
-                summary.append('TOR node')
-            context['ipcheck']['summary'] = ', '.join(summary)
-        except HTTPError:
-            context['data_sources']['ipcheck'] = False
+        context['ipcheck'] = result
+        context['data_sources']['ipcheck'] = True
+
+        # Summarize the important bits
+        summary = []
+        if result['webhost']['result']['webhost']:
+            summary.append('webhost')
+        if result['proxycheck']['result']['proxy']:
+            summary.append('proxy (proxycheck)')
+        if result['stopforumspam']['result']['appears']:
+            summary.append('on SFS blacklist')
+        if not result['computeHosts']['result']['cloud'].startswith('This IP is not'):
+            summary.append(f"cloud ({result['computeHosts']['result']['cloud']})")
+        if result['spamcop']['result']['listed']:
+            summary.append('on SpamCop blacklist')
+        if result['tor']['result']['tornode']:
+            summary.append('TOR node')
+        context['ipcheck']['summary'] = ', '.join(summary)
     else:
         context['data_sources']['ipcheck'] = False
 
 
 def get_spur_data(ip, context):
     if hasattr(settings, 'SPUR_KEY') and settings.SPUR_KEY:
-        try:
-            r = requests.get(f'https://api.spur.us/v1/context/{ip}', headers={'Token': settings.SPUR_KEY})
-            r.raise_for_status()
-            results = r.json()
-            context['spur'] = results
-            context['data_sources']['spur'] = True
-            print(results)
-            if 'geoPrecision' in results and results['geoPrecision']['exists']:
-                context['geoips']['features'].append({
-                    'type': 'Feature',
-                    'geometry': {
-                        'type': 'Point',
-                        'coordinates': [
-                            results['geoPrecision']['point']['longitude'],
-                            results['geoPrecision']['point']['latitude']
-                        ]
-                    },
-                    'properties': {
-                        'description': 'Spur (usage location)',
-                        'color': 'red'
-                    }
-                })
-            summary = []
-            if results['vpnOperators']['exists']:
-                summary.append('VPN')
-                # Prettify
-                context['spur']['vpns'] = ', '.join(results['vpnOperators']['operators'])
+        result = get_cached(ip, 'spur')
+        if not result:
+            try:
+                r = requests.get(f'https://api.spur.us/v1/context/{ip}', headers={'Token': settings.SPUR_KEY})
+                r.raise_for_status()
+                result = r.json()
+                update_cached(ip, 'spur', result)
+            except HTTPError as e:
+                print(e)
+                context['data_sources']['spur'] = False
+                return
+        context['spur'] = result
+        context['data_sources']['spur'] = True
+        if 'geoPrecision' in result and result['geoPrecision']['exists']:
+            context['geoips']['features'].append({
+                'type': 'Feature',
+                'geometry': {
+                    'type': 'Point',
+                    'coordinates': [
+                        result['geoPrecision']['point']['longitude'],
+                        result['geoPrecision']['point']['latitude']
+                    ]
+                },
+                'properties': {
+                    'description': 'Spur (usage location)',
+                    'color': 'red'
+                }
+            })
+        summary = []
+        if result['vpnOperators']['exists']:
+            summary.append('VPN')
+            # Prettify
+            context['spur']['vpns'] = ', '.join(result['vpnOperators']['operators'])
 
-            if results['deviceBehaviors']['exists']:
-                context['spur']['behaviors'] = ', '.join([x['name'] for x in results['deviceBehaviors']['behaviors']])
+        if result['deviceBehaviors']['exists']:
+            context['spur']['behaviors'] = ', '.join([x['name'] for x in result['deviceBehaviors']['behaviors']])
 
-            if results['proxiedTraffic']['exists']:
-                summary.append('callback proxy')
-                # Prettify
-                context['spur']['proxies'] = ', '.join([f'{x["name"]} ({x["type"]})' for x in results['proxiedTraffic']['proxies']])
+        if result['proxiedTraffic']['exists']:
+            summary.append('callback proxy')
+            # Prettify
+            context['spur']['proxies'] = ', '.join([f'{x["name"]} ({x["type"]})' for x in result['proxiedTraffic']['proxies']])
 
-            if results['wifi']['exists']:
-                summary.append('wifi')
-                # Prettify
-                context['spur']['ssids'] = ', '.join(results['wifi']['ssids'])
+        if result['wifi']['exists']:
+            summary.append('wifi')
+            # Prettify
+            context['spur']['ssids'] = ', '.join(result['wifi']['ssids'])
 
-            context['spur']['summary'] = ', '.join(summary)
-
-
-        except HTTPError as e:
-            print(e)
-            context['data_sources']['spur'] = False
+        context['spur']['summary'] = ', '.join(summary)
 
     else:
         context['data_sources']['spur'] = False
