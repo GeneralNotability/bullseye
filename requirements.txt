@@ -11,6 +11,7 @@ cryptography==3.4.8
 defusedxml==0.7.1
 Django==3.2.6
 django-bootstrap-v5==1.0.5
+django-picklefield==3.0.1
 django-social-auth==0.7.28
 geoip2==4.2.0
 httplib2==0.19.1
