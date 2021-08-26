@@ -214,7 +214,6 @@ def get_shodan_data(ip, context):
                 print(e)
                 context['data_sources']['shodan'] = False
                 return
-        print(result)
         context['shodan'] = result
         context['data_sources']['shodan'] = True
         if 'isp' in result:
