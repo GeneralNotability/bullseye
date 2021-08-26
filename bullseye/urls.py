@@ -17,7 +17,7 @@ from django.contrib import admin
 from django.urls import include, path
 
 urlpatterns = [
-    path('ip/', include('bullseyeapp.urls')),
+    path('', include('bullseyeapp.urls')),
     path('admin/', admin.site.urls),
     path('oauth/', include('social_django.urls', namespace='oauth'))
 ]
