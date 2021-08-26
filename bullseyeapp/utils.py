@@ -12,7 +12,7 @@ def get_userrights(request):
     user = request.user
     userrights = ['anonymous']
     if not user.is_authenticated:
-        return
+        return userrights
     try:
         payload = {
             'action': 'query',
@@ -98,3 +98,57 @@ def get_ipcheck_data(ip, context):
             context['data_sources']['ipcheck'] = False
     else:
         context['data_sources']['ipcheck'] = False
+
+
+def get_spur_data(ip, context):
+    if hasattr(settings, 'SPUR_KEY') and settings.SPUR_KEY:
+        try:
+            r = requests.get(f'https://api.spur.us/v1/context/{ip}', headers={'Token': settings.SPUR_KEY})
+            r.raise_for_status()
+            results = r.json()
+            context['spur'] = results
+            context['data_sources']['spur'] = True
+            print(results)
+            if 'geoPrecision' in results and results['geoPrecision']['exists']:
+                context['geoips']['features'].append({
+                    'type': 'Feature',
+                    'geometry': {
+                        'type': 'Point',
+                        'coordinates': [
+                            results['geoPrecision']['point']['longitude'],
+                            results['geoPrecision']['point']['latitude']
+                        ]
+                    },
+                    'properties': {
+                        'description': 'Spur (usage location)',
+                        'color': 'red'
+                    }
+                })
+            summary = []
+            if results['vpnOperators']['exists']:
+                summary.append('VPN')
+                # Prettify
+                context['spur']['vpns'] = ', '.join(results['vpnOperators']['operators'])
+
+            if results['deviceBehaviors']['exists']:
+                context['spur']['behaviors'] = ', '.join([x['name'] for x in results['deviceBehaviors']['behaviors']])
+
+            if results['proxiedTraffic']['exists']:
+                summary.append('callback proxy')
+                # Prettify
+                context['spur']['proxies'] = ', '.join([f'{x["name"]} ({x["type"]})' for x in results['proxiedTraffic']['proxies']])
+
+            if results['wifi']['exists']:
+                summary.append('wifi')
+                # Prettify
+                context['spur']['ssids'] = ', '.join(results['wifi']['ssids'])
+
+            context['spur']['summary'] = ', '.join(summary)
+
+
+        except HTTPError as e:
+            print(e)
+            context['data_sources']['spur'] = False
+
+    else:
+        context['data_sources']['spur'] = False

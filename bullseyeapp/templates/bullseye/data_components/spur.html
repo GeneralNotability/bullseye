@@ -1,0 +1,31 @@
+<div class="accordion-item">
+  <h2 class="accordion-header" id="headingSpur">
+    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSpur" aria-expanded="false" aria-controls="collapseSpur">
+      Spur ({{spur.summary}})
+    </button>
+  </h2>
+  <div id="collapseSpur" class="accordion-collapse collapse" aria-labelledby="headingSpur">
+    <div class="accordion-body">
+      <p>VPN/Proxy activity: {{ spur.anonymous }}</p>
+      {% if spur.devices.estimate %}
+      <p>Estimated number of devices: {{ spur.devices.estimate }}</p>
+      {% endif %}
+      {% if spur.assignment.exists %}
+      <p>Last IP turnover: {{ spur.assignment.lastTurnover }}</p>
+      {% endif %}
+      {% if spur.vpnOperators.exists %}
+      <p>VPNs: {{ spur.vpns }}</p>
+      {% endif %}
+      {% if spur.proxiedTraffic.exists %}
+      <p>Other proxies: {{ spur.proxies }}</p>
+      {% endif %}
+      {% if spur.deviceBehaviors.exists %}
+      <p>Device behaviors: {{ spur.behaviors }}</p>
+      {% endif %}
+      {% if spur.wifi.exists %}
+      <p>Associated SSIDs: {{ spur.ssids }}</p>
+      {% endif %}
+      <p>Infrastructure: {{ spur.infrastructure }}</p>
+    </div>
+  </div>
+</div>

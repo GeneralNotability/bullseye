@@ -5,9 +5,7 @@ from django.contrib.auth import logout
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 
-from .utils import get_ipcheck_data, \
-    get_maxmind_data, get_userrights, \
-    get_whois_data
+from . import utils
 
 
 def get_landing_page(request):
@@ -23,13 +21,17 @@ def get_ip_info(request, ip):
     }
 
     # TODO: cache this in the User model somehow
-    context['userrights'] = get_userrights(request)
+    context['userrights'] = utils.get_userrights(request)
 
-    get_whois_data(ip, context)
+    utils.get_whois_data(ip, context)
 
-    get_maxmind_data(ip, context)
+    utils.get_maxmind_data(ip, context)
 
-    get_ipcheck_data(ip, context)
+    utils.get_ipcheck_data(ip, context)
+
+    authorized_groups = set(['sysop', 'checkuser'])
+    if authorized_groups.intersection(set(context['userrights'])):
+        utils.get_spur_data(ip, context)
 
     try:
         context['rdns'] = socket.gethostbyaddr(ip)[0]
