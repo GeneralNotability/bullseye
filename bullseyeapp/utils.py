@@ -44,7 +44,7 @@ def get_cached(ip, source):
     try:
         cached = CachedResult.objects.get(ip_addr=ip, source=source)
         print(cached.updated)
-        if cached.updated > datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=3):
+        if cached.updated > datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=2):
             return cached.result
         return None
     except CachedResult.DoesNotExist:
@@ -62,7 +62,12 @@ def get_whois_data(ip, context):
     result = get_cached(ip, 'whois')
     if not result:
         try:
-            r = requests.get(f'https://whois.toolforge.org/w/{ip}/lookup/json')
+            payload = {
+                'ip': ip,
+                'lookup': 'true',
+                'format': 'json'
+            }
+            r = requests.get('https://whois-referral.toolforge.org/w/gateway.py', params=payload)
             r.raise_for_status()
             result = r.json()
             update_cached(ip, 'whois', result)
