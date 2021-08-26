@@ -23,7 +23,7 @@ document.getElementById("submitBtn").onclick = doSearch;
 
 function doSearch() {
     const ip = document.getElementById("inputIP").value;
-    window.location = "{{ request.path }}" + ip;
+    window.location = "{{ request.path }}" + 'ip/' + ip;
     return false;
 }
 </script>
