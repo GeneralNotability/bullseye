@@ -29,13 +29,17 @@ def get_ip_info(request, ip):
 
     utils.get_ipcheck_data(ip, context)
 
-    authorized_groups = set(['steward', 'checkuser'])
+    spur_authorized_groups = set(['steward', 'checkuser'])
 
-    if authorized_groups.intersection(set(context['userrights'])) or\
+    if spur_authorized_groups.intersection(set(context['userrights'])) or\
             request.user.groups.filter(name='trusted').exists():
         utils.get_spur_data(ip, context)
 
-    utils.get_shodan_data(ip, context)
+    shodan_authorized_groups = set(['sysop', 'global-sysop', 'steward', 'checkuser'])
+
+    if shodan_authorized_groups.intersection(set(context['userrights'])) or\
+            request.user.groups.filter(name='trusted').exists():
+        utils.get_shodan_data(ip, context)
 
     try:
         context['rdns'] = socket.gethostbyaddr(ip)[0]
