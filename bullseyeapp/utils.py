@@ -179,7 +179,7 @@ def get_spur_data(ip, context):
         if result['vpnOperators']['exists']:
             summary.append('VPN')
             # Prettify
-            context['spur']['vpns'] = ', '.join(result['vpnOperators']['operators'])
+            context['spur']['vpns'] = ', '.join([x['name'] for x in result['vpnOperators']['operators']])
 
         if result['deviceBehaviors']['exists']:
             context['spur']['behaviors'] = ', '.join([x['name'] for x in result['deviceBehaviors']['behaviors']])
