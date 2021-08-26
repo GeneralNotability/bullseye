@@ -44,6 +44,6 @@ def get_ip_info(request, ip):
 def get_ip_range_info(request, ip, cidr):
     return HttpResponse(f'Details of {ip}/{cidr}')
 
-def logout(request):
+def logout_view(request):
     logout(request)
     #return redirect(request.META.get('HTTP_REFERER'))
