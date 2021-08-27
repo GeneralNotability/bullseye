@@ -20,6 +20,9 @@
           {% else %}
 	  <a class="dropdown-item" href="{% url "social:begin" "mediawiki"%}?next={{ request.path }}">Log in</a>
           {% endif %}
+          {% if user.is_staff %}
+	  <a class="dropdown-item" href="{% url "admin:index" %}">Admin</a>
+          {% endif %}
         </div>
       </span>
     </nav>
