@@ -78,6 +78,7 @@ def get_whois_data(ip, context):
             return
 
     context['whois'] = result
+    context['isp'] = result['asn_description']
     context['data_sources']['whois'] = True
 
 def get_maxmind_data(ip, context):
