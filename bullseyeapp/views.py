@@ -12,6 +12,8 @@ def get_landing_page(request):
     return render(request, 'bullseye/index.html')
 
 def get_ip_info(request, ip):
+    if not request.user.is_authenticated:
+        return render(request, 'bullseye/notauthed.html')
     context = {}
     context['ip'] = ip
     context['data_sources'] = {}
