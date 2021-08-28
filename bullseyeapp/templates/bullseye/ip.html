@@ -9,8 +9,10 @@
 
 {% block content %}
 
-<p>Hostname: {{ rdns|default:'unknown' }}</p>
-<p>ISP: {{ isp|default:'unknown' }}</p>
+<p>Range: {{ range|default:'unknown' }}<br />
+Location: {{ location|default:'unknown' }}<br />
+Hostname: {{ rdns|default:'unknown' }}<br />
+ISP: {{ isp|default:'unknown' }}</p>
 {% if mapserver %}
 {% include 'bullseye/map.html' %}
 {% endif %}
