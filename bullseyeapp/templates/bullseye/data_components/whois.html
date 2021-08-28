@@ -6,7 +6,14 @@
   </h2>
   <div id="collapseWHOIS" class="accordion-collapse collapse" aria-labelledby="headingWHOIS">
     <div class="accordion-body">
-      <p>ASN: {{ whois.asn|default:'UNKNOWN' }}</p>
+      <p>ASN: 
+        {% if whois.asn %}
+	<a href="https://bgp.he.net/{{ whois.asn }}">{{ whois.asn }}</a>
+        {% else %}
+        UNKNOWN
+	{% endif %}:w
+
+        </p>
       <p>ASN CIDR: {{ whois.asn_cidr|default:'UNKNOWN' }}</p>
       <p>ASN Description: {{ whois.asn_description|default:'UNKNOWN' }}</p>
       <div class="accordion">
