@@ -80,7 +80,8 @@ def get_whois_data(ip, context):
     context['whois'] = result
     context['isp'] = result['asn_description']
     context['range'] = result['asn_cidr']
-    context['location'] = result['geo_ipinfo']
+    if 'geo_ipinfo' in result:
+        context['location'] = result['geo_ipinfo']
     context['data_sources']['whois'] = True
 
 def get_maxmind_data(ip, context):
