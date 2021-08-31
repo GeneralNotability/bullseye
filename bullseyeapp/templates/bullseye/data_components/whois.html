@@ -11,8 +11,7 @@
 	<a href="https://bgp.he.net/{{ whois.asn }}">{{ whois.asn }}</a>
         {% else %}
         UNKNOWN
-	{% endif %}:w
-
+	{% endif %}
         </p>
       <p>ASN CIDR: {{ whois.asn_cidr|default:'UNKNOWN' }}</p>
       <p>ASN Description: {{ whois.asn_description|default:'UNKNOWN' }}</p>
