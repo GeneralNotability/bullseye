@@ -18,6 +18,7 @@ ISP: {{ isp|default:'unknown' }}</p>
 {% endif %}
 
 <div class="accordion">
+{% include 'bullseye/data_components/blocks.html' %}
 {% if data_sources.whois %}
   {% include 'bullseye/data_components/whois.html' %}
 {% endif %}

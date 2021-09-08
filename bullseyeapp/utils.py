@@ -14,7 +14,43 @@ from .models import CachedResult
 def has_group(key, wikidict):
     return 'groups' in wikidict and key in wikidict['groups']
 
-def get_userrights(request):
+def get_userrights(request, context):
+    user = request.user
+    userrights = set()
+    targetwikis = set()
+    if not user.is_authenticated:
+        context['userrights'] = userrights
+        context['targetwikis'] = set(['enwiki'])
+        return
+    try:
+        payload = {
+            'action': 'query',
+            'meta': 'globaluserinfo',
+            'guiuser': user.username,
+            'guiprop': 'groups|merged',
+            'format': 'json'
+        }
+        r = requests.get('https://meta.wikimedia.org/w/api.php', params=payload)
+        result = r.json()
+        targetwikis.add(result['query']['globaluserinfo']['home'])
+        acctwikis = result['query']['globaluserinfo']['merged']
+        for w in acctwikis:
+            if has_group('checkuser', w):
+                userrights.add('checkuser')
+                targetwikis.add(w['wiki'])
+            elif has_group('sysop', w):
+                userrights.add('sysop')
+                targetwikis.add(w['wiki'])
+        if 'steward' in result['query']['globaluserinfo']['groups']:
+            userrights.add('steward')
+        if 'global-sysop' in result['query']['globaluserinfo']['groups']:
+            userrights.add('global-sysop')
+    except HTTPError as e:
+        print(e)
+    context['targetwikis'] = targetwikis
+    context['userrights'] = userrights
+
+def get_blocks(ip, context):
     user = request.user
     userrights = ['anonymous']
     if not user.is_authenticated:
@@ -44,7 +80,6 @@ def get_userrights(request):
 def get_cached(ip, source):
     try:
         cached = CachedResult.objects.get(ip_addr=ip, source=source)
-        print(cached.updated)
         if cached.updated > datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=2):
             return cached.result
         return None
@@ -254,3 +289,91 @@ def get_shodan_data(ip, context):
         context['shodan']['summary'] = ', '.join(summary)
     else:
         context['data_sources']['shodan'] = False
+
+def get_sitematrix():
+
+    sitematrix = get_cached('127.0.0.1', 'sitematrix')
+    # Get/update sitematrix codes
+    if not sitematrix:
+        try:
+            payload = {
+                'action': 'sitematrix',
+                'format': 'json'
+            }
+            r = requests.get('https://meta.wikimedia.org/w/api.php', params=payload)
+            r.raise_for_status()
+            sitematrix = r.json()
+            update_cached('127.0.0.1', 'sitematrix', sitematrix)
+        except HTTPError as e:
+            print(e)
+            return
+    return sitematrix
+
+def get_relevant_blocks(ip, context):
+    matrix = get_sitematrix()
+    context['blocks'] = {}
+    # Global blocks
+    get_globalblockstatus(ip, context)
+    # Local blocks
+    targets = []
+    for entry in matrix['sitematrix']:
+        if entry in ['specials', 'count']:
+            continue
+        for site in matrix['sitematrix'][entry]['site']:
+            if site['dbname'] in context['targetwikis']:
+                targets.append(site)
+    for site in matrix['sitematrix']['specials']:
+        if site['dbname'] in context['targetwikis']:
+            targets.append(site)
+    for target in targets:
+        get_blockstatus(ip, context, target)
+    summary = []
+    if context['globalblocks']:
+        summary.append('global block')
+    for (wiki, block) in context['blocks'].items():
+        if not block:
+            continue
+        blocktype = 'block'
+        for blockentry in block:
+            print(blockentry)
+            if not blockentry['anononly']:
+                blocktype = 'hardblock'
+        summary.append(f'{wiki} {blocktype}')
+
+        context['blocksummary'] = ', '.join(summary)
+
+def get_blockstatus(ip, context, wiki):
+    url = wiki['url']
+    wikiname = wiki['dbname']
+    try:
+        payload = {
+            'action': 'query',
+            'list': 'blocks',
+            'bkip': ip,
+            'formatversion': 2,
+            'format': 'json'
+        }
+        r = requests.get(url + '/w/api.php', params=payload)
+        r.raise_for_status()
+        result = r.json()
+        blocks = result['query']['blocks']
+        context['blocks'][wikiname] = blocks
+    except HTTPError as e:
+        print(e)
+
+def get_globalblockstatus(ip, context):
+    context['globalblocks'] = []
+    try:
+        payload = {
+            'action': 'query',
+            'list': 'globalblocks',
+            'bgip': ip,
+            'bgprop': 'address|range|reason|timestamp|by|expiry',
+            'format': 'json'
+        }
+        r = requests.get('https://meta.wikimedia.org/w/api.php', params=payload)
+        r.raise_for_status()
+        result = r.json()
+        context['globalblocks'] = result['query']['globalblocks']
+    except HTTPError as e:
+        print(e)

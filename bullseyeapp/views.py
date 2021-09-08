@@ -23,7 +23,9 @@ def get_ip_info(request, ip):
     }
 
     # TODO: cache this in the User model somehow
-    context['userrights'] = utils.get_userrights(request)
+    utils.get_userrights(request, context)
+
+    utils.get_relevant_blocks(ip, context)
 
     utils.get_whois_data(ip, context)
 
