@@ -1,4 +1,5 @@
 import datetime
+import ipaddress
 import json
 import requests
 from requests.exceptions import HTTPError
@@ -150,6 +151,28 @@ def get_maxmind_data(ip, context):
         context['location'] = f'{result["city"]}, {result["region"]}, {result["country_name"]}'
     else:
         context['data_sources']['maxmind'] = False
+
+def lookup_maxmind_dartboard(ip):
+    try:
+        g = GeoIP2()
+        result = g.city(ip)
+    except Exception as e:
+        print(e)
+        return None
+    return {
+        'type': 'Feature',
+        'geometry': {
+            'type': 'Point',
+            'coordinates': [
+                result['longitude'],
+                result['latitude']
+            ]
+        },
+        'properties': {
+            'description': f'{ip} (Maxmind GeoLite2)',
+            'color': 'blue'
+        }
+    }
 
 def get_ipcheck_data(ip, context):
     if hasattr(settings, 'IPCHECK_KEY') and settings.IPCHECK_KEY:
@@ -377,3 +400,15 @@ def get_globalblockstatus(ip, context):
         context['globalblocks'] = result['query']['globalblocks']
     except HTTPError as e:
         print(e)
+
+def parse_ip_form(form_text):
+    ips = []
+    errors = []
+    for line in form_text.splitlines():
+        cleaned = line.strip()
+        try:
+            ipaddress.ip_address(line)
+            ips.append(cleaned)
+        except:
+            errors.append(line)
+    return ips, errors

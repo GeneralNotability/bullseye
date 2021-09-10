@@ -1,15 +1,42 @@
+import ipaddress
 import socket
 
 from django.conf import settings
 from django.contrib.auth import logout
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
+from django.views.decorators.http import require_http_methods
 
 from . import utils
 
 
 def get_landing_page(request):
     return render(request, 'bullseye/index.html')
+
+@require_http_methods(['GET', 'POST'])
+def dartboard(request):
+    if request.method == 'GET':
+        return render(request, 'bullseye/dartboard.html')
+    # guaranteed to be POST now
+    context = {}
+    context['cdnjs'] = settings.CDNJS
+    if hasattr(settings, 'MAPSERVER') and settings.MAPSERVER:
+        context['mapserver'] = settings.MAPSERVER
+    form_data = request.POST
+    geos = []
+    ips, errors = utils.parse_ip_form(form_data['dartboardIPs'])
+    print(ips, errors)
+    context['errors'] = errors
+    for ip in ips:
+        if hasattr(settings, 'GEOIP_PATH') and settings.GEOIP_PATH:
+            geos.append(utils.lookup_maxmind_dartboard(ip))
+
+    context['geoips'] = {
+        'type': 'FeatureCollection',
+        'features': geos
+    }
+    return render(request, 'bullseye/dartboard-map.html', context)
+
 
 def get_ip_info(request, ip):
     if not request.user.is_authenticated:

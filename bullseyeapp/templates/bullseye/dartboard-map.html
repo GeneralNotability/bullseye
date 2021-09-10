@@ -1,0 +1,21 @@
+{% extends 'bullseye/base.html' %}
+{% load bootstrap5 %}
+
+
+{% block title %}
+Dartboard
+{% endblock %}
+
+
+{% block content %}
+{% if mapserver %}
+{% if geoips.features %} 
+{% include 'bullseye/map.html' %}
+{% else %}
+<h3>No valid IPs were specified, no data sources were available, or none of the IPs had geolocation information</h3>
+{% endif %}
+{% else %}
+<h2>This feature requires a map server.</h2>
+{% endif %}
+
+{% endblock %}
