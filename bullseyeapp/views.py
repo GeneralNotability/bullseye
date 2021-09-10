@@ -35,6 +35,8 @@ def dartboard(request):
         'type': 'FeatureCollection',
         'features': geos
     }
+    context['ips'] = ips
+    context['errors'] = errors
     return render(request, 'bullseye/dartboard-map.html', context)
 
 
