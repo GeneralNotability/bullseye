@@ -9,7 +9,8 @@ Dartboard
 
 {% block content %}
 {% if mapserver %}
-{% if geoips.features %} 
+{% if geoips.features %}
+<p>IPs: {{ ips }}</p>
 {% include 'bullseye/map.html' %}
 {% else %}
 <h3>No valid IPs were specified, no data sources were available, or none of the IPs had geolocation information</h3>
