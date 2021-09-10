@@ -10,7 +10,6 @@ Dartboard
 {% block content %}
 <form action="" method="post" id="dartboard">
   <div class="form-group">
-    <label for="inputIP">Addresses</label>
     <textarea class="form-control" id="dartboardIPs" aria-describedby="ipHelp" placeholder="IPs" name="dartboardIPs" required></textarea>
     <small id="ipHelp" class="form-text text-muted">IP addresses, one per line.</small>
     {% csrf_token %}
