@@ -1,3 +1,4 @@
+{% if blocksummary %}
 <div class="accordion-item">
   <h2 class="accordion-header" id="headingBlocks">
     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBlocks" aria-expanded="false" aria-controls="collapseBlocks">
@@ -41,9 +42,18 @@
             </div>
           </div>
         </div>
-	{% endif %}
+	      {% endif %}
       {% endfor %}
       </div>
     </div>
   </div>
 </div>
+{% else %}
+<div class="accordion-item">
+  <h2 class="accordion-header" id="headingBlocks">
+    <button class="accordion-button collapsed" aria-expanded="false">
+	    Wikimedia Blocks (none)
+    </button>
+  </h2>
+</div>
+{% endif %}
