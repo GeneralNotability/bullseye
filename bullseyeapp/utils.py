@@ -358,7 +358,6 @@ def get_relevant_blocks(ip, context):
             continue
         blocktype = 'block'
         for blockentry in block:
-            print(blockentry)
             if not blockentry['anononly']:
                 blocktype = 'hardblock'
         summary.append(f'{wiki} {blocktype}')
