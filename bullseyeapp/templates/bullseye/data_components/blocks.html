@@ -18,7 +18,7 @@
           <div id="collapseBlocksGlobal" class="accordion-collapse collapse" aria-labelledby="headingBlocksGlobal">
             <div class="accordion-body">
               {% for entry in globalblocks %}
-              <p>{{ entry.address }} blocked ( {{entry.reason}} ) by {{ entry.by }} until {{ entry.timestamp }}</p>
+              <p>{{ entry.address }} blocked ( {{entry.reason}} ) by {{ entry.by }} until {{ entry.expiry }}</p>
               {% endfor %}
             </div>
           </div>
@@ -36,7 +36,7 @@
             <div class="accordion-body">
 	      <ul>
               {% for entry in blocklist %}
-	        <li>{{ entry.user }} blocked ({{ entry.reason }} ) by {{ entry.by }} until {{ entry.timestamp }}. anononly: {{ entry.anononly }}, account creation blocked: {{ entry.nocreate }}</li>
+	        <li>{{ entry.user }} blocked ({{ entry.reason }} ) by {{ entry.by }} until {{ entry.expiry }}. anononly: {{ entry.anononly }}, account creation blocked: {{ entry.nocreate }}</li>
 	      {% endfor %}
 	      </ul>
             </div>
