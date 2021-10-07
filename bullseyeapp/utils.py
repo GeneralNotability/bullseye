@@ -51,33 +51,6 @@ def get_userrights(request, context):
     context['targetwikis'] = targetwikis
     context['userrights'] = userrights
 
-def get_blocks(ip, context):
-    user = request.user
-    userrights = ['anonymous']
-    if not user.is_authenticated:
-        return userrights
-    try:
-        payload = {
-            'action': 'query',
-            'meta': 'globaluserinfo',
-            'guiuser': user.username,
-            'guiprop': 'groups|merged',
-            'format': 'json'
-        }
-        r = requests.get('https://www.mediawiki.org/w/api.php', params=payload)
-        result = r.json()
-        if any(has_group('sysop', x) for x in result['query']['globaluserinfo']['merged']):
-            userrights.append('sysop')
-        if 'global-sysop' in result['query']['globaluserinfo']['groups']:
-            userrights.append('global-sysop')
-        if any(has_group('checkuser', x) for x in result['query']['globaluserinfo']['merged']):
-            userrights.append('checkuser')
-        if 'steward' in result['query']['globaluserinfo']['groups']:
-            userrights.append('steward')
-    except HTTPError as e:
-        print(e)
-    return userrights
-
 def get_cached(ip, source):
     try:
         cached = CachedResult.objects.get(ip_addr=ip, source=source)
