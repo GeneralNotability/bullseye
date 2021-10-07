@@ -2,6 +2,8 @@ import datetime
 import ipaddress
 import json
 import requests
+import socket
+from multiprocessing.pool import ThreadPool
 from requests.exceptions import HTTPError
 
 import shodan
@@ -12,17 +14,26 @@ from django.db.models import Model
 from .models import CachedResult
 
 
+def get_empty_context():
+    context = {}
+    context['data_sources'] = {}
+    context['geoips'] = {
+        'type': 'FeatureCollection',
+        'features': []
+    }
+    return context
+
 def has_group(key, wikidict):
     return 'groups' in wikidict and key in wikidict['groups']
 
-def get_userrights(request, context):
-    user = request.user
+def get_userrights(user):
+    context = {}
     userrights = set()
     targetwikis = set()
     if not user.is_authenticated:
         context['userrights'] = userrights
         context['targetwikis'] = set(['enwiki'])
-        return
+        return context
     try:
         payload = {
             'action': 'query',
@@ -50,6 +61,7 @@ def get_userrights(request, context):
         print(e)
     context['targetwikis'] = targetwikis
     context['userrights'] = userrights
+    return context
 
 def get_cached(ip, source):
     try:
@@ -68,8 +80,9 @@ def update_cached(ip, source, result):
     cached.result = result
     cached.save()
 
-def get_whois_data(ip, context):
+def get_whois_data(ip):
     result = get_cached(ip, 'whois')
+    context = get_empty_context()
     if not result:
         try:
             payload = {
@@ -84,7 +97,7 @@ def get_whois_data(ip, context):
         except HTTPError as e:
             print(e)
             context['data_sources']['whois'] = False
-            return
+            return context
 
     context['whois'] = result
     context['isp'] = result['asn_description']
@@ -92,8 +105,10 @@ def get_whois_data(ip, context):
     if 'geo_ipinfo' in result:
         context['location'] = result['geo_ipinfo']
     context['data_sources']['whois'] = True
+    return context
 
-def get_maxmind_data(ip, context):
+def get_maxmind_data(ip):
+    context = get_empty_context()
     if hasattr(settings, 'GEOIP_PATH') and settings.GEOIP_PATH:
         result = get_cached(ip, 'maxmind')
         if not result:
@@ -103,7 +118,7 @@ def get_maxmind_data(ip, context):
                 update_cached(ip, 'maxmind', result)
             except Exception as e:
                 context['data_sources']['maxmind'] = False
-                return
+                return context
 
         context['maxmind'] = result
         context['data_sources']['maxmind'] = True
@@ -124,6 +139,7 @@ def get_maxmind_data(ip, context):
         context['location'] = f'{result["city"]}, {result["region"]}, {result["country_name"]}'
     else:
         context['data_sources']['maxmind'] = False
+    return context
 
 def lookup_maxmind_dartboard(ip):
     try:
@@ -147,7 +163,8 @@ def lookup_maxmind_dartboard(ip):
         }
     }
 
-def get_ipcheck_data(ip, context):
+def get_ipcheck_data(ip):
+    context = get_empty_context()
     if hasattr(settings, 'IPCHECK_KEY') and settings.IPCHECK_KEY:
         result = get_cached(ip, 'ipcheck')
         if not result:
@@ -158,7 +175,7 @@ def get_ipcheck_data(ip, context):
                 update_cached(ip, 'ipcheck', result)
             except HTTPError:
                 context['data_sources']['ipcheck'] = False
-                return
+                return context
 
         context['ipcheck'] = result
         context['data_sources']['ipcheck'] = True
@@ -181,8 +198,11 @@ def get_ipcheck_data(ip, context):
     else:
         context['data_sources']['ipcheck'] = False
 
+    return context
 
-def get_spur_data(ip, context):
+
+def get_spur_data(ip):
+    context = get_empty_context()
     if hasattr(settings, 'SPUR_KEY') and settings.SPUR_KEY:
         result = get_cached(ip, 'spur')
         if not result:
@@ -194,7 +214,7 @@ def get_spur_data(ip, context):
             except HTTPError as e:
                 print(e)
                 context['data_sources']['spur'] = False
-                return
+                return context
         context['spur'] = result
         context['data_sources']['spur'] = True
         if 'geoPrecision' in result and result['geoPrecision']['exists']:
@@ -235,9 +255,11 @@ def get_spur_data(ip, context):
 
     else:
         context['data_sources']['spur'] = False
+    return context
 
 
-def get_shodan_data(ip, context):
+def get_shodan_data(ip):
+    context = get_empty_context()
     if hasattr(settings, 'SHODAN_KEY') and settings.SHODAN_KEY:
         result = get_cached(ip, 'shodan')
         result = None
@@ -249,7 +271,7 @@ def get_shodan_data(ip, context):
             except Exception as e:
                 print(e)
                 context['data_sources']['shodan'] = False
-                return
+                return context
         context['shodan'] = result
         context['data_sources']['shodan'] = True
         if 'isp' in result:
@@ -285,9 +307,9 @@ def get_shodan_data(ip, context):
         context['shodan']['summary'] = ', '.join(summary)
     else:
         context['data_sources']['shodan'] = False
+    return context
 
 def get_sitematrix():
-
     sitematrix = get_cached('127.0.0.1', 'sitematrix')
     # Get/update sitematrix codes
     if not sitematrix:
@@ -305,24 +327,32 @@ def get_sitematrix():
             return
     return sitematrix
 
-def get_relevant_blocks(ip, context):
+def get_relevant_blocks(ip, wiki_list):
+    print(wiki_list)
+    context = get_empty_context()
     matrix = get_sitematrix()
     context['blocks'] = {}
-    # Global blocks
-    get_globalblockstatus(ip, context)
-    # Local blocks
-    targets = []
-    for entry in matrix['sitematrix']:
-        if entry in ['specials', 'count']:
-            continue
-        for site in matrix['sitematrix'][entry]['site']:
-            if site['dbname'] in context['targetwikis']:
-                targets.append(site)
-    for site in matrix['sitematrix']['specials']:
-        if site['dbname'] in context['targetwikis']:
-            targets.append(site)
-    for target in targets:
-        get_blockstatus(ip, context, target)
+    with ThreadPool() as pool:
+        # Global blocks
+        gblock_query = pool.apply_async(get_globalblockstatus, (ip,))
+
+        localblock_queries = []
+        # Local blocks
+        for entry in matrix['sitematrix']:
+            if entry in ['specials', 'count']:
+                continue
+            for site in matrix['sitematrix'][entry]['site']:
+                if site['dbname'] in wiki_list:
+                    localblock_queries.append((site['dbname'], pool.apply_async(get_blockstatus, (ip, site))))
+        for site in matrix['sitematrix']['specials']:
+            if site['dbname'] in wiki_list:
+                localblock_queries.append((site['dbname'], pool.apply_async(get_blockstatus, (ip, site))))
+
+        for query in localblock_queries:
+            context['blocks'][query[0]] = query[1].get()
+
+        context['globalblocks'] = gblock_query.get()
+
     summary = []
     if context['globalblocks']:
         summary.append('global block')
@@ -336,10 +366,10 @@ def get_relevant_blocks(ip, context):
         summary.append(f'{wiki} {blocktype}')
 
         context['blocksummary'] = ', '.join(summary)
+    return context
 
-def get_blockstatus(ip, context, wiki):
+def get_blockstatus(ip, wiki):
     url = wiki['url']
-    wikiname = wiki['dbname']
     try:
         payload = {
             'action': 'query',
@@ -351,13 +381,12 @@ def get_blockstatus(ip, context, wiki):
         r = requests.get(url + '/w/api.php', params=payload)
         r.raise_for_status()
         result = r.json()
-        blocks = result['query']['blocks']
-        context['blocks'][wikiname] = blocks
+        return result['query']['blocks']
     except HTTPError as e:
         print(e)
+        return None
 
-def get_globalblockstatus(ip, context):
-    context['globalblocks'] = []
+def get_globalblockstatus(ip):
     try:
         payload = {
             'action': 'query',
@@ -369,7 +398,7 @@ def get_globalblockstatus(ip, context):
         r = requests.get('https://meta.wikimedia.org/w/api.php', params=payload)
         r.raise_for_status()
         result = r.json()
-        context['globalblocks'] = result['query']['globalblocks']
+        return result['query']['globalblocks']
     except HTTPError as e:
         print(e)
 
@@ -384,3 +413,11 @@ def parse_ip_form(form_text):
         except:
             errors.append(line)
     return ips, errors
+
+def get_rdns(ip):
+    context = {}
+    try:
+        context['rdns'] = socket.gethostbyaddr(ip)[0]
+    except socket.herror:
+        context['rdns'] = 'unknown'
+    return context
