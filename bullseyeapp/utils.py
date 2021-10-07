@@ -196,7 +196,7 @@ def get_ipcheck_data(ip, context):
             summary.append('webhost')
         if result['proxycheck']['result']['proxy']:
             summary.append('proxy (proxycheck)')
-        if result['stopforumspam']['result']['appears']:
+        if result['stopforumspam']['result'] and result['stopforumspam']['result']['appears']:
             summary.append('on SFS blacklist')
         if not result['computeHosts']['result']['cloud'].startswith('This IP is not'):
             summary.append(f"cloud ({result['computeHosts']['result']['cloud']})")
