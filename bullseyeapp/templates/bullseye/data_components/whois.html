@@ -8,7 +8,7 @@
     <div class="accordion-body">
       <p>ASN: 
         {% if whois.asn %}
-	<a href="https://bgp.he.net/{{ whois.asn }}">{{ whois.asn }}</a>
+	<a href="https://bgp.he.net/AS{{ whois.asn }}">{{ whois.asn }}</a>
         {% else %}
         UNKNOWN
 	{% endif %}
@@ -34,7 +34,7 @@
         </div>
       {% endfor %}
       </div>
-      <p><a href="https://whois-dev.toolforge.org/w/{{ ip }}/lookup">Source</a></p>
+      <p><a href="https://whois-referral.toolforge.org/gateway.py?lookup=true&ip={{ ip }}">Source</a></p>
     </div>
   </div>
 </div>
