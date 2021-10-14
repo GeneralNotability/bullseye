@@ -34,5 +34,8 @@ ISP: {{ isp|default:'unknown' }}</p>
 {% if data_sources.shodan %}
   {% include 'bullseye/data_components/shodan.html' %}
 {% endif %}
+{% if data_sources.bgpview %}
+  {% include 'bullseye/data_components/bgpview.html' %}
+{% endif %}
 </div>
 {% endblock %}

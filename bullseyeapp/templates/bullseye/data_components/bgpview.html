@@ -1,0 +1,39 @@
+<div class="accordion-item">
+  <h2 class="accordion-header" id="headingBGPView">
+    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBGPView" aria-expanded="false" aria-controls="collapseBGPView">
+      BGPView
+    </button>
+  </h2>
+  <div id="collapseBGPView" class="accordion-collapse collapse" aria-labelledby="headingBGPView">
+    <div class="accordion-body">
+      <div class="accordion">
+      {% for net in bgpview.prefixes %}
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="headingBGPView{{ forloop.counter }}">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBGPView{{ forloop.counter }}" aria-expanded="false" aria-controls="collapseBGPView{{ forloop.counter }}">
+		    {{ net.description }} ({{ net.prefix }})
+            </button>
+          </h2>
+          <div id="collapseBGPView{{ forloop.counter }}" class="accordion-collapse collapse" aria-labelledby="headingBGPView{{ forloop.counter }}">
+            <div class="accordion-body">
+              <p>Name: <a href="https://bgpview.io/search/{{ net.name }}">{{ net.name }}</a></p>
+              <p>ASN: <a href="https://bgpview.io/asn/{{ net.asn.asn }}">{{ net.asn.asn }}</a></p>
+              <p>CIDR: <a href="https://bgpview.io/prefix/{{ net.prefix }}">{{ net.prefix }}</a></p>
+              <p>Country: {{ net.country_code }}</p>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+      </div>
+      {% if bgpview.related_prefixes %}
+      <h3>Related prefixes</h3>
+      <ul>
+      {% for net in bgpview.related_prefixes %}
+        <li>{{ net.description }} ({{ net.prefix }})</li>
+      {% endfor %}
+      </ul>
+      {% endif %}
+      <p><a href="https://bgpview.io/ip/{{ ip }}">Source</a></p>
+    </div>
+  </div>
+</div>

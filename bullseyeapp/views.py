@@ -62,6 +62,7 @@ def get_ip_info(request, ip):
         queries.append(pool.apply_async(utils.get_maxmind_data, (ip,)))
         queries.append(pool.apply_async(utils.get_rdns, (ip,)))
         queries.append(pool.apply_async(utils.get_ipcheck_data, (ip,)))
+        queries.append(pool.apply_async(utils.get_bgpview_data, (ip,)))
     
         # Need the wiki query to finish to get the target wikis and access rights
         userrights_ctx = userrights_query.get()

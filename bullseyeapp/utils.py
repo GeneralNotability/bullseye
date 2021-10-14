@@ -262,7 +262,6 @@ def get_shodan_data(ip):
     context = get_empty_context()
     if hasattr(settings, 'SHODAN_KEY') and settings.SHODAN_KEY:
         result = get_cached(ip, 'shodan')
-        result = None
         if not result:
             try:
                 api = shodan.Shodan(settings.SHODAN_KEY)
@@ -420,4 +419,29 @@ def get_rdns(ip):
         context['rdns'] = socket.gethostbyaddr(ip)[0]
     except socket.herror:
         context['rdns'] = 'unknown'
+    return context
+
+def get_bgpview_data(ip):
+    context = get_empty_context()
+    result = get_cached(ip, 'bgpview')
+    if not result:
+        try:
+            r = requests.get(f'https://api.bgpview.io/ip/{ip}')
+            r.raise_for_status()
+            result = r.json()['data']
+            if r.json()['status'] != 'ok':
+                print(result['status_message'])
+                context['data_sources']['bgpview'] = False
+                return context
+            update_cached(ip, 'bgpview', result)
+        except Exception as e:
+            print(e)
+            context['data_sources']['bgpview'] = False
+            return context
+
+    context['bgpview'] = result
+    print(result)
+    context['isp'] = result['prefixes'][0]['description']
+    context['range'] = result['prefixes'][0]['prefix']
+    context['data_sources']['bgpview'] = True
     return context
