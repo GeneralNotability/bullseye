@@ -327,7 +327,6 @@ def get_sitematrix():
     return sitematrix
 
 def get_relevant_blocks(ip, wiki_list):
-    print(wiki_list)
     context = get_empty_context()
     matrix = get_sitematrix()
     context['blocks'] = {}
@@ -440,7 +439,6 @@ def get_bgpview_data(ip):
             return context
 
     context['bgpview'] = result
-    print(result)
     context['isp'] = result['prefixes'][0]['description']
     context['range'] = result['prefixes'][0]['prefix']
     context['data_sources']['bgpview'] = True
