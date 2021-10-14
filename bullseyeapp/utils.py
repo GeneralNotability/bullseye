@@ -9,6 +9,7 @@ from requests.exceptions import HTTPError
 import shodan
 from django.conf import settings
 from django.contrib.gis.geoip2 import GeoIP2
+from django.core.cache import cache
 from django.db.models import Model
 
 from .models import CachedResult
@@ -63,25 +64,9 @@ def get_userrights(user):
     context['userrights'] = userrights
     return context
 
-def get_cached(ip, source):
-    try:
-        cached = CachedResult.objects.get(ip_addr=ip, source=source)
-        if cached.updated > datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=2):
-            return cached.result
-        return None
-    except CachedResult.DoesNotExist:
-        return None
-
-def update_cached(ip, source, result):
-    try:
-        cached = CachedResult.objects.get(ip_addr=ip, source=source)
-    except CachedResult.DoesNotExist:
-        cached = CachedResult(ip_addr=ip, source=source)
-    cached.result = result
-    cached.save()
-
 def get_whois_data(ip):
-    result = get_cached(ip, 'whois')
+    cache_key = f'whois-{ip}'
+    result = cache.get(cache_key)
     context = get_empty_context()
     if not result:
         try:
@@ -93,7 +78,7 @@ def get_whois_data(ip):
             r = requests.get('https://whois-referral.toolforge.org/w/gateway.py', params=payload)
             r.raise_for_status()
             result = r.json()
-            update_cached(ip, 'whois', result)
+            cache.set(cache_key, result, 86400)
         except HTTPError as e:
             print(e)
             context['data_sources']['whois'] = False
@@ -110,15 +95,12 @@ def get_whois_data(ip):
 def get_maxmind_data(ip):
     context = get_empty_context()
     if hasattr(settings, 'GEOIP_PATH') and settings.GEOIP_PATH:
-        result = get_cached(ip, 'maxmind')
-        if not result:
-            try:
-                g = GeoIP2()
-                result = g.city(ip)
-                update_cached(ip, 'maxmind', result)
-            except Exception as e:
-                context['data_sources']['maxmind'] = False
-                return context
+        try:
+            g = GeoIP2()
+            result = g.city(ip)
+        except Exception as e:
+            context['data_sources']['maxmind'] = False
+            return context
 
         context['maxmind'] = result
         context['data_sources']['maxmind'] = True
@@ -166,13 +148,14 @@ def lookup_maxmind_dartboard(ip):
 def get_ipcheck_data(ip):
     context = get_empty_context()
     if hasattr(settings, 'IPCHECK_KEY') and settings.IPCHECK_KEY:
-        result = get_cached(ip, 'ipcheck')
+        cache_key = f'ipcheck-{ip}'
+        result = cache.get(cache_key)
         if not result:
             try:
                 r = requests.get(f'https://ipcheck.toolforge.org/index.php?ip={ip}&api=true&key={settings.IPCHECK_KEY}')
                 r.raise_for_status()
                 result = r.json()
-                update_cached(ip, 'ipcheck', result)
+                cache.set(cache_key, result, 86400)
             except HTTPError:
                 context['data_sources']['ipcheck'] = False
                 return context
@@ -204,13 +187,14 @@ def get_ipcheck_data(ip):
 def get_spur_data(ip):
     context = get_empty_context()
     if hasattr(settings, 'SPUR_KEY') and settings.SPUR_KEY:
-        result = get_cached(ip, 'spur')
+        cache_key = f'spur-{ip}'
+        result = cache.get(cache_key)
         if not result:
             try:
                 r = requests.get(f'https://api.spur.us/v1/context/{ip}', headers={'Token': settings.SPUR_KEY})
                 r.raise_for_status()
                 result = r.json()
-                update_cached(ip, 'spur', result)
+                cache.set(cache_key, result, 86400)
             except HTTPError as e:
                 print(e)
                 context['data_sources']['spur'] = False
@@ -261,12 +245,13 @@ def get_spur_data(ip):
 def get_shodan_data(ip):
     context = get_empty_context()
     if hasattr(settings, 'SHODAN_KEY') and settings.SHODAN_KEY:
-        result = get_cached(ip, 'shodan')
+        cache_key = f'shodan-{ip}'
+        result = cache.get(cache_key)
         if not result:
             try:
                 api = shodan.Shodan(settings.SHODAN_KEY)
                 result = api.host(ip)
-                update_cached(ip, 'shodan', result)
+                cache.set(cache_key, result, 86400)
             except Exception as e:
                 print(e)
                 context['data_sources']['shodan'] = False
@@ -309,7 +294,8 @@ def get_shodan_data(ip):
     return context
 
 def get_sitematrix():
-    sitematrix = get_cached('127.0.0.1', 'sitematrix')
+    cache_key = f'sitematrix'
+    sitematrix = cache.get(cache_key)
     # Get/update sitematrix codes
     if not sitematrix:
         try:
@@ -320,7 +306,7 @@ def get_sitematrix():
             r = requests.get('https://meta.wikimedia.org/w/api.php', params=payload)
             r.raise_for_status()
             sitematrix = r.json()
-            update_cached('127.0.0.1', 'sitematrix', sitematrix)
+            cache.set('sitematrix', sitematrix, 86400)
         except HTTPError as e:
             print(e)
             return
@@ -422,7 +408,8 @@ def get_rdns(ip):
 
 def get_bgpview_data(ip):
     context = get_empty_context()
-    result = get_cached(ip, 'bgpview')
+    cache_key = f'bgpview-{ip}'
+    result = cache.get(cache_key)
     if not result:
         try:
             r = requests.get(f'https://api.bgpview.io/ip/{ip}')
@@ -432,7 +419,7 @@ def get_bgpview_data(ip):
                 print(result['status_message'])
                 context['data_sources']['bgpview'] = False
                 return context
-            update_cached(ip, 'bgpview', result)
+            cache.set(cache_key, result, 86400)
         except Exception as e:
             print(e)
             context['data_sources']['bgpview'] = False
