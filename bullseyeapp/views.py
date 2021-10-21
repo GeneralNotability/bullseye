@@ -5,11 +5,13 @@ from multiprocessing.pool import ThreadPool
 
 from django.conf import settings
 from django.contrib.auth import logout
+from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
 
 from . import utils
+from .models import ExtraUserData
 
 
 def get_landing_page(request):
@@ -67,16 +69,15 @@ def get_ip_info(request, ip):
         # Need the wiki query to finish to get the target wikis and access rights
         userrights_ctx = userrights_query.get()
         always_merger.merge(context, userrights_ctx)
+        userdata = ExtraUserData.objects.get(user=request.user)
         queries.append(pool.apply_async(utils.get_relevant_blocks, (ip, context['targetwikis'])))
     
-        spur_authorized_groups = set(['steward', 'checkuser'])
-        if spur_authorized_groups.intersection(set(context['userrights'])) or\
-                request.user.groups.filter(name='trusted').exists():
+        if userdata.userrights.filter(Q(name='steward') | Q(name='checkuser')).count() or \
+                request.user.groups.filter(name='trusted').count():
             queries.append(pool.apply_async(utils.get_spur_data, (ip,)))
     
-        shodan_authorized_groups = set(['sysop', 'global-sysop', 'steward', 'checkuser'])
-        if shodan_authorized_groups.intersection(set(context['userrights'])) or\
-                request.user.groups.filter(name='trusted').exists():
+        if userdata.userrights.filter(Q(name='steward') | Q(name='checkuser') | Q(name='sysop') | Q(name='global-sysop')).count() or\
+                request.user.groups.filter(name='trusted').count():
             queries.append(pool.apply_async(utils.get_shodan_data, (ip,)))
 
         for query in queries:
@@ -84,6 +85,7 @@ def get_ip_info(request, ip):
             always_merger.merge(context, query_ctx)
 
         
+    utils.increment_user_queries(request.user)
     context['cdnjs'] = settings.CDNJS
     if hasattr(settings, 'MAPSERVER') and settings.MAPSERVER:
         context['mapserver'] = settings.MAPSERVER

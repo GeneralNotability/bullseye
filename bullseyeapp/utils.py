@@ -12,7 +12,7 @@ from django.contrib.gis.geoip2 import GeoIP2
 from django.core.cache import cache
 from django.db.models import Model
 
-from .models import CachedResult
+from .models import ExtraUserData, MonthlyStats, UserRight
 
 
 def get_empty_context():
@@ -29,12 +29,19 @@ def has_group(key, wikidict):
 
 def get_userrights(user):
     context = {}
+    # Get user
+    try:
+        userdata = ExtraUserData.objects.get(user=user)
+        if datetime.datetime.now(datetime.timezone.utc) - userdata.last_updated < datetime.timedelta(days=1):
+            context['targetwikis'] = userdata.targetwikis
+            context['userrights'] = userdata.userrights
+        return context
+    except ExtraUserData.DoesNotExist:
+        userdata = ExtraUserData()
+        userdata.user = user
+
     userrights = set()
     targetwikis = set()
-    if not user.is_authenticated:
-        context['userrights'] = userrights
-        context['targetwikis'] = set(['enwiki'])
-        return context
     try:
         payload = {
             'action': 'query',
@@ -62,6 +69,17 @@ def get_userrights(user):
         print(e)
     context['targetwikis'] = targetwikis
     context['userrights'] = userrights
+    userdata.targetwikis = targetwikis
+
+    userdata.groups.clear()
+    for right_name in userrights:
+        try:
+            right = UserRight.get(name=right_name)
+        except UserRight.DoesNotExist:
+            right = UserRight(name=right_name)
+            right.save()
+        userdata.groups.add(right)
+    userdata.save()
     return context
 
 def get_whois_data(ip):
@@ -430,3 +448,28 @@ def get_bgpview_data(ip):
     context['range'] = result['prefixes'][0]['prefix']
     context['data_sources']['bgpview'] = True
     return context
+
+
+def increment_user_queries(user):
+    month = datetime.date.today().replace(day=1)
+    userdata = ExtraUserData.objects.filter(user=user).get()
+    try:
+        monthdata = userdata.stats.filter(month=month).get()
+        monthdata.count += 1
+        monthdata.save()
+    except MonthlyStats.DoesNotExist:
+        monthdata = MonthlyStats(count=1)
+        monthdata.save()
+        userdata.stats.add(monthdata)
+        userdata.save()
+
+    for group in userdata.userrights.all():
+        try:
+            monthdata = group.stats.filter(month=month).get()
+            monthdata.count += 1
+            monthdata.save()
+        except MonthlyStats.DoesNotExist:
+            monthdata = MonthlyStats(count=1)
+            monthdata.save()
+            group.stats.add(monthdata)
+            group.save()
