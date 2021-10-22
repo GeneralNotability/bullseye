@@ -72,8 +72,10 @@ def get_userrights(user):
     userdata.targetwikis = targetwikis
     userdata.save()
 
+    if not userrights:
+        userrights.add('other')
+
     userdata.userrights.clear()
-    print(userrights)
     for right_name in userrights:
         try:
             right = UserRight.objects.get(name=right_name)
