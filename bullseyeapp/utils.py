@@ -439,7 +439,6 @@ def get_bgpview_data(ip):
             r.raise_for_status()
             result = r.json()['data']
             if r.json()['status'] != 'ok':
-                print(result['status_message'])
                 context['data_sources']['bgpview'] = False
                 return context
             cache.set(cache_key, result, 86400)
