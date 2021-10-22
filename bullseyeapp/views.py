@@ -29,8 +29,6 @@ def dartboard(request):
     form_data = request.POST
     geos = []
     ips, errors = utils.parse_ip_form(form_data['dartboardIPs'])
-    print(ips, errors)
-    context['errors'] = errors
     for ip in ips:
         if hasattr(settings, 'GEOIP_PATH') and settings.GEOIP_PATH:
             geos.append(utils.lookup_maxmind_dartboard(ip))
