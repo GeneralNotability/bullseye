@@ -41,6 +41,7 @@ def get_userrights(user):
 
     userrights = set()
     targetwikis = set()
+    userrights.add('all')
     try:
         payload = {
             'action': 'query',
