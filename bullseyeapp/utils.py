@@ -32,10 +32,9 @@ def get_userrights(user):
     # Get user
     try:
         userdata = ExtraUserData.objects.get(user=user)
-        if datetime.datetime.now(datetime.timezone.utc) - userdata.last_updated < datetime.timedelta(days=1):
-            context['targetwikis'] = userdata.targetwikis
-            context['userrights'] = userdata.userrights
-        return context
+        #if datetime.datetime.now(datetime.timezone.utc) - userdata.last_updated < datetime.timedelta(days=1):
+        #    context['targetwikis'] = userdata.targetwikis
+        #return context
     except ExtraUserData.DoesNotExist:
         userdata = ExtraUserData()
         userdata.user = user
@@ -68,17 +67,18 @@ def get_userrights(user):
     except HTTPError as e:
         print(e)
     context['targetwikis'] = targetwikis
-    context['userrights'] = userrights
     userdata.targetwikis = targetwikis
+    userdata.save()
 
-    userdata.groups.clear()
+    userdata.userrights.clear()
+    print(userrights)
     for right_name in userrights:
         try:
-            right = UserRight.get(name=right_name)
+            right = UserRight.objects.get(name=right_name)
         except UserRight.DoesNotExist:
             right = UserRight(name=right_name)
             right.save()
-        userdata.groups.add(right)
+        userdata.userrights.add(right)
     userdata.save()
     return context
 
@@ -458,7 +458,7 @@ def increment_user_queries(user):
         monthdata.count += 1
         monthdata.save()
     except MonthlyStats.DoesNotExist:
-        monthdata = MonthlyStats(count=1)
+        monthdata = MonthlyStats(count=1, name=user.username)
         monthdata.save()
         userdata.stats.add(monthdata)
         userdata.save()
@@ -469,7 +469,7 @@ def increment_user_queries(user):
             monthdata.count += 1
             monthdata.save()
         except MonthlyStats.DoesNotExist:
-            monthdata = MonthlyStats(count=1)
+            monthdata = MonthlyStats(count=1, name=group.name)
             monthdata.save()
             group.stats.add(monthdata)
             group.save()

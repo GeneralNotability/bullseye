@@ -5,11 +5,12 @@ from django.db import models
 from picklefield.fields import PickledObjectField
 
 class MonthlyStats(models.Model):
+    name = models.TextField()
     month = models.DateField(default=datetime.date.today().replace(day=1))
     count = models.IntegerField(default=0)
 
     def __str__(self):
-        return f'{self.month.month}/{self.month.year}: {self.count}'
+        return f'{self.name} {self.month.month}/{self.month.year}: {self.count}'
 
     class Meta:
         verbose_name = 'Monthly Stats'
