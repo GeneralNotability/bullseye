@@ -72,11 +72,11 @@ def get_ip_info(request, ip):
         userdata = ExtraUserData.objects.get(user=request.user)
         queries.append(pool.apply_async(utils.get_relevant_blocks, (ip, context['targetwikis'])))
     
-        if userdata.userrights.filter(Q(name='steward') | Q(name='checkuser')).count() or \
+        if userdata.userrights.filter(Q(name='steward') | Q(name='checkuser') |Q(name='staff')).count() or \
                 request.user.groups.filter(name='trusted').count():
             queries.append(pool.apply_async(utils.get_spur_data, (ip,)))
     
-        if userdata.userrights.filter(Q(name='steward') | Q(name='checkuser') | Q(name='sysop') | Q(name='global-sysop')).count() or\
+        if userdata.userrights.filter(Q(name='steward') | Q(name='checkuser') | Q(name='sysop') | Q(name='global-sysop') | Q(name='staff')).count() or\
                 request.user.groups.filter(name='trusted').count():
             queries.append(pool.apply_async(utils.get_shodan_data, (ip,)))
 

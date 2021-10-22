@@ -64,6 +64,8 @@ def get_userrights(user):
             userrights.add('steward')
         if 'global-sysop' in result['query']['globaluserinfo']['groups']:
             userrights.add('global-sysop')
+        if 'staff' in result['query']['globaluserinfo']['groups']:
+            userrights.add('staff')
     except HTTPError as e:
         print(e)
     context['targetwikis'] = targetwikis
