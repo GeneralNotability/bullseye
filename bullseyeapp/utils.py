@@ -448,8 +448,9 @@ def get_bgpview_data(ip):
             return context
 
     context['bgpview'] = result
-    context['isp'] = result['prefixes'][0]['description']
-    context['range'] = result['prefixes'][0]['prefix']
+    if result['prefixes']:
+        context['isp'] = result['prefixes'][0]['description']
+        context['range'] = result['prefixes'][0]['prefix']
     context['data_sources']['bgpview'] = True
     return context
 
