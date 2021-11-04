@@ -135,3 +135,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CDNJS = 'https://cdnjs.cloudflare.com'
 
 MAPSERVER = ''
+
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"

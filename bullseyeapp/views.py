@@ -67,7 +67,11 @@ def get_ip_info(request, ip):
         # Need the wiki query to finish to get the target wikis and access rights
         userrights_ctx = userrights_query.get()
         always_merger.merge(context, userrights_ctx)
-        userdata = ExtraUserData.objects.get(user=request.user)
+        if 'userdata' in request.session and request.session['userdata']:
+            userdata = request.session['userdata']
+        else:
+            userdata = ExtraUserData.objects.get(user=request.user)
+            request.session['userdata'] = userdata
         queries.append(pool.apply_async(utils.get_relevant_blocks, (ip, context['targetwikis'])))
     
         if userdata.userrights.filter(Q(name='steward') | Q(name='checkuser') |Q(name='staff')).count() or \
