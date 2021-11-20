@@ -35,7 +35,7 @@
           <div id="collapseBlocks{{ forloop.counter }}" class="accordion-collapse collapse" aria-labelledby="headingBlocks{{ forloop.counter }}">
             <div class="accordion-body">
 	      <ul>
-              {% for entry in blocklist %}
+              {% for entry in blocklist.1 %}
 	      <li><a href="{{ blockdata.0.url }}/w/index.php?title=Special:Log&page={{ entry.user }}&type=block">{{ entry.user }} blocked ({{ entry.reason }}) on {{ entry.timestamp }} by {{ entry.by }} until {{ entry.expiry }}. anononly: {{ entry.anononly }}, account creation blocked: {{ entry.nocreate }}</a></li>
 	      {% endfor %}
 	      </ul>
