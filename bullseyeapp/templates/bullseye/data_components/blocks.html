@@ -18,7 +18,7 @@
           <div id="collapseBlocksGlobal" class="accordion-collapse collapse" aria-labelledby="headingBlocksGlobal">
             <div class="accordion-body">
               {% for entry in globalblocks %}
-	      <p><a href="https://meta.wikimedia.org/wiki/Special:Log?type=gblblock&page={{ entry.address | urlencode}}">{{ entry.address }} blocked ( {{entry.reason}} ) by {{ entry.by }} until {{ entry.expiry }}</a></p>
+	      <p>{{ entry.address} <a href="https://meta.wikimedia.org/wiki/Special:Log?type=gblblock&page={{ entry.address | urlencode}}">blocked</a> ({{entry.reason}}) by {{ entry.by }} until {{ entry.expiry }}</p>
               {% endfor %}
             </div>
           </div>
@@ -35,8 +35,8 @@
           <div id="collapseBlocks{{ forloop.counter }}" class="accordion-collapse collapse" aria-labelledby="headingBlocks{{ forloop.counter }}">
             <div class="accordion-body">
 	      <ul>
-              {% for entry in blocklist.1 %}
-	      <li><a href="{{ blockdata.0.url }}/w/index.php?title=Special:Log&page={{ entry.user }}&type=block">{{ entry.user }} blocked ({{ entry.reason }}) on {{ entry.timestamp }} by {{ entry.by }} until {{ entry.expiry }}. anononly: {{ entry.anononly }}, account creation blocked: {{ entry.nocreate }}</a></li>
+              {% for entry in blockdata.1 %}
+	      <li>{{ entry.user }} <a href="{{ blockdata.0.url }}/w/index.php?title=Special:Log&page={{ entry.user }}&type=block">blocked</a> ({{ entry.reason }}) on {{ entry.timestamp }} by {{ entry.by }} until {{ entry.expiry }}. anononly: {{ entry.anononly }}, account creation blocked: {{ entry.nocreate }}</a></li>
 	      {% endfor %}
 	      </ul>
             </div>
