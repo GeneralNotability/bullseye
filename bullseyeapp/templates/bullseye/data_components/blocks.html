@@ -36,7 +36,7 @@
             <div class="accordion-body">
 	      <ul>
               {% for entry in blocklist %}
-	        <li>{{ entry.user }} blocked ({{ entry.reason }} ) by {{ entry.by }} until {{ entry.expiry }}. anononly: {{ entry.anononly }}, account creation blocked: {{ entry.nocreate }}</li>
+                <li>{{ entry.user }} blocked ({{ entry.reason }}) on {{ entry.timestamp }} by {{ entry.by }} until {{ entry.expiry }}. anononly: {{ entry.anononly }}, account creation blocked: {{ entry.nocreate }}</li>
 	      {% endfor %}
 	      </ul>
             </div>
