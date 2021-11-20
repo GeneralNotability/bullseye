@@ -350,27 +350,27 @@ def get_relevant_blocks(ip, wiki_list):
                 continue
             for site in matrix['sitematrix'][entry]['site']:
                 if site['dbname'] in wiki_list:
-                    localblock_queries.append((site['dbname'], pool.apply_async(get_blockstatus, (ip, site))))
+                    localblock_queries.append((site, pool.apply_async(get_blockstatus, (ip, site))))
         for site in matrix['sitematrix']['specials']:
             if site['dbname'] in wiki_list:
-                localblock_queries.append((site['dbname'], pool.apply_async(get_blockstatus, (ip, site))))
+                localblock_queries.append((site, pool.apply_async(get_blockstatus, (ip, site))))
 
         for query in localblock_queries:
-            context['blocks'][query[0]] = query[1].get()
+            context['blocks'][query[0]['dbname']] = (query[0], query[1].get())
 
         context['globalblocks'] = gblock_query.get()
 
     summary = []
     if context['globalblocks']:
         summary.append('global block')
-    for (wiki, block) in context['blocks'].items():
-        if not block:
+    for (site, blockdata) in context['blocks'].items():
+        if not blockdata[1]:
             continue
         blocktype = 'block'
-        for blockentry in block:
+        for blockentry in blockdata[1]:
             if not blockentry['anononly']:
                 blocktype = 'hardblock'
-        summary.append(f'{wiki} {blocktype}')
+        summary.append(f'{blockdata[0]["dbname"]} {blocktype}')
 
         context['blocksummary'] = ', '.join(summary)
     return context

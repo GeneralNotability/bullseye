@@ -18,25 +18,25 @@
           <div id="collapseBlocksGlobal" class="accordion-collapse collapse" aria-labelledby="headingBlocksGlobal">
             <div class="accordion-body">
               {% for entry in globalblocks %}
-              <p>{{ entry.address }} blocked ( {{entry.reason}} ) by {{ entry.by }} until {{ entry.expiry }}</p>
+	      <p><a href="https://meta.wikimedia.org/wiki/Special:Log?type=gblblock&page={{ entry.address | urlencode}}">{{ entry.address }} blocked ( {{entry.reason}} ) by {{ entry.by }} until {{ entry.expiry }}</a></p>
               {% endfor %}
             </div>
           </div>
         </div>
       {% endif %}
-      {% for wiki, blocklist in blocks.items %}
-        {% if blocklist %}
+      {% for site, blockdata in blocks.items %}
+        {% if blockdata.1 %}
         <div class="accordion-item">
           <h2 class="accordion-header" id="headingBlocks{{ forloop.counter }}">
             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBlocks{{ forloop.counter }}" aria-expanded="false" aria-controls="collapseBlocks{{ forloop.counter }}">
-             {{ wiki }}
+             {{ blockdata.0.dbname }}
             </button>
           </h2>
           <div id="collapseBlocks{{ forloop.counter }}" class="accordion-collapse collapse" aria-labelledby="headingBlocks{{ forloop.counter }}">
             <div class="accordion-body">
 	      <ul>
               {% for entry in blocklist %}
-                <li>{{ entry.user }} blocked ({{ entry.reason }}) on {{ entry.timestamp }} by {{ entry.by }} until {{ entry.expiry }}. anononly: {{ entry.anononly }}, account creation blocked: {{ entry.nocreate }}</li>
+	      <li><a href="{{ blockdata.0.url }}/w/index.php?title=Special:Log&page={{ entry.user }}&type=block">{{ entry.user }} blocked ({{ entry.reason }}) on {{ entry.timestamp }} by {{ entry.by }} until {{ entry.expiry }}. anononly: {{ entry.anononly }}, account creation blocked: {{ entry.nocreate }}</a></li>
 	      {% endfor %}
 	      </ul>
             </div>
