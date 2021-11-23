@@ -67,18 +67,22 @@ def get_ip_info(request, ip):
         # Need the wiki query to finish to get the target wikis and access rights
         userrights_ctx = userrights_query.get()
         always_merger.merge(context, userrights_ctx)
-        if 'userdata' in request.session and request.session['userdata']:
-            userdata = request.session['userdata']
+        if 'usergroups' in request.session and request.session['usergroups']:
+            usergroups = request.session['usergroups']
         else:
             userdata = ExtraUserData.objects.get(user=request.user)
-            request.session['userdata'] = userdata
+            usergroups = []
+            # Convert to list - we can't serialize userdata as-is
+            for group in userdata.userrights.all():
+                usergroups.append(group.name)
+            request.session['usergroups'] = usergroups
         queries.append(pool.apply_async(utils.get_relevant_blocks, (ip, context['targetwikis'])))
     
-        if userdata.userrights.filter(Q(name='steward') | Q(name='checkuser') |Q(name='staff')).count() or \
+        if 'steward' in usergroups or 'checkuser' in usergroups or 'staff' in usergroups or \
                 request.user.groups.filter(name='trusted').count():
             queries.append(pool.apply_async(utils.get_spur_data, (ip,)))
     
-        if userdata.userrights.filter(Q(name='steward') | Q(name='checkuser') | Q(name='sysop') | Q(name='global-sysop') | Q(name='staff')).count() or\
+        if 'steward' in usergroups or 'checkuser' in usergroups or 'staff' in usergroups or 'sysop' in usergroups or 'global-sysop' in usergroups or \
                 request.user.groups.filter(name='trusted').count():
             queries.append(pool.apply_async(utils.get_shodan_data, (ip,)))
 
