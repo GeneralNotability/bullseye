@@ -2,12 +2,16 @@ import datetime
 
 from django.contrib.auth.models import User
 from django.db import models
+from django.db.models import UniqueConstraint
 from picklefield.fields import PickledObjectField
 
 class MonthlyStats(models.Model):
     name = models.TextField()
     month = models.DateField(default=datetime.date.today().replace(day=1))
     count = models.IntegerField(default=0)
+
+
+    unique_name_month = UniqueConstraint(name='unique_name_month', fields=['name', 'month'])
 
     def __str__(self):
         return f'{self.name} {self.month.month}/{self.month.year}: {self.count}'
