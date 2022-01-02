@@ -3,13 +3,13 @@ import datetime
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import UniqueConstraint
+from django.utils import timezone
 from picklefield.fields import PickledObjectField
 
 class MonthlyStats(models.Model):
-    name = models.TextField()
-    month = models.DateField(default=datetime.date.today().replace(day=1))
+    name = models.CharField(null=False, blank=False, max_length=255)
+    month = models.DateField(default=timezone.now().date().replace(day=1))
     count = models.IntegerField(default=0)
-
 
     unique_name_month = UniqueConstraint(name='unique_name_month', fields=['name', 'month'])
 
