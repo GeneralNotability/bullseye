@@ -463,7 +463,7 @@ def increment_user_queries(user):
         monthdata.count += 1
         monthdata.save()
     except MonthlyStats.DoesNotExist:
-        monthdata = MonthlyStats(count=1, name=user.username)
+        monthdata = MonthlyStats(count=1, name=user.username, month=month)
         monthdata.save()
         userdata.stats.add(monthdata)
         userdata.save()
@@ -474,7 +474,7 @@ def increment_user_queries(user):
             monthdata.count += 1
             monthdata.save()
         except MonthlyStats.DoesNotExist:
-            monthdata = MonthlyStats(count=1, name=group.name)
+            monthdata = MonthlyStats(count=1, name=group.name, month=month)
             monthdata.save()
             group.stats.add(monthdata)
             group.save()
