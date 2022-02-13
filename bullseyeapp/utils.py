@@ -69,8 +69,11 @@ def get_userrights(user):
             userrights.add('staff')
     except HTTPError as e:
         print(e)
+    if userdata.targetwikis:
+        targetwikis = userdata.targetwikis
+    else:
+        userdata.targetwikis = targetwikis
     context['targetwikis'] = targetwikis
-    userdata.targetwikis = targetwikis
     userdata.save()
 
     if not userrights:
