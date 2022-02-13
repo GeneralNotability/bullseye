@@ -349,10 +349,10 @@ def get_relevant_blocks(ip, wiki_list):
             if entry in ['specials', 'count']:
                 continue
             for site in matrix['sitematrix'][entry]['site']:
-                if site['dbname'] in wiki_list:
+                if site['dbname'] in wiki_list and not 'private' in site and not 'closed' in site:
                     localblock_queries.append((site, pool.apply_async(get_blockstatus, (ip, site))))
         for site in matrix['sitematrix']['specials']:
-            if site['dbname'] in wiki_list:
+            if site['dbname'] in wiki_list and not 'private' in site and not 'closed' in site:
                 localblock_queries.append((site, pool.apply_async(get_blockstatus, (ip, site))))
 
         for query in localblock_queries:
@@ -388,6 +388,8 @@ def get_blockstatus(ip, wiki):
         r = requests.get(url + '/w/api.php', params=payload)
         r.raise_for_status()
         result = r.json()
+        if 'query' not in result:
+            return None
         return result['query']['blocks']
     except HTTPError as e:
         print(e)
