@@ -10,6 +10,7 @@ from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
 
+from . import forms
 from . import utils
 from .models import ExtraUserData
 
@@ -99,6 +100,48 @@ def get_ip_info(request, ip):
 
 def get_ip_range_info(request, ip, cidr):
     return HttpResponse(f'Details of {ip}/{cidr}')
+
+@require_http_methods(['GET', 'POST'])
+def update_wiki_prefs(request):
+    if not request.user.is_authenticated:
+        return render(request, 'bullseye/notauthed.html')
+    sitematrix = utils.get_sitematrix()
+    sites_grouped = {}
+    valid_sites = []
+    for entry in sitematrix['sitematrix']:
+        if entry in ['specials', 'count']:
+            continue
+        for site in sitematrix['sitematrix'][entry]['site']:
+            if 'closed' in site or 'private' in site or 'fishbowl' in site:
+                continue
+            if not site['code'] in sites_grouped:
+                sites_grouped[site['code']] = []
+            sites_grouped[site['code']].append((site['dbname'], site['dbname']))
+            valid_sites.append(site['dbname'])
+
+    sites_grouped['special'] = []
+    for site in sitematrix['sitematrix']['specials']:
+        if 'closed' in site or 'private' in site or 'fishbowl' in site:
+            continue
+        sites_grouped['special'].append((site['dbname'], site['dbname']))
+        valid_sites.append(site['dbname'])
+    sites = []
+    for k,v in sites_grouped.items():
+        sites.append((k, v))
+    userrights = utils.get_userrights(request.user)
+    if request.method == 'POST':
+        form = forms.WikiForm(data=request.POST, choices=sites, initial={'wikis': list(userrights['targetwikis'])})
+        if form.is_valid():
+            print(form.cleaned_data)
+            print(form.cleaned_data['wikis'])
+            userdata = ExtraUserData.objects.get(user=request.user)
+            userdata.targetwikis = form.cleaned_data['wikis']
+            userdata.save()
+            return redirect(get_landing_page)
+    else:
+        # Doing this to force default group creation if needed
+        form = forms.WikiForm(choices=sites, initial={'wikis': list(userrights['targetwikis'])})
+    return render(request, 'bullseye/wikiprefs.html', {'form': form, 'cdnjs': settings.CDNJS})
 
 def logout_view(request):
     logout(request)

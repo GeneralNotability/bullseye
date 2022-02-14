@@ -1,0 +1,38 @@
+{% extends 'bullseye/base.html' %}
+{% load bootstrap5 %}
+
+{% block bootstrap5_extra_head %}
+<script type="text/javascript" src="{{ cdnjs }}/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+<script type="text/javascript" src="{{ cdnjs }}/ajax/libs/bootstrap-multiselect/1.1.1/js/bootstrap-multiselect.js"></script>
+<link rel="stylesheet" href="{{ cdnjs }}/ajax/libs/bootstrap-multiselect/1.1.1/css/bootstrap-multiselect.min.css"/>
+{% endblock %}
+
+{% block title %}
+Bullseye
+{% endblock %}
+
+
+{% block content %}
+<form action="" method="post" class="form">
+    {% csrf_token %}
+    {% bootstrap_form form %}
+    <input type="submit" value="submit">
+</form>
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#id_wikis').multiselect({
+            buttonClass: 'form-select',
+            buttonWidth: '75%',
+            enableFiltering: true,
+            enableCollapsibleOptGroups: true,
+            widthSynchronizationMode: 'always',
+            numberDisplayed: 0,
+            templates: {
+                button: '<button type="button" class="multiselect dropdown-toggle" data-bs-toggle="dropdown"><span class="multiselect-selected-text"></span></button>',
+            }
+        });
+        document.forms['MarkerForm'].reset();
+    });
+</script>
+{% endblock %}

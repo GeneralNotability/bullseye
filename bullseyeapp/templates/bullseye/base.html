@@ -30,6 +30,7 @@
         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
           {% if user.is_authenticated %}
 	  <a class="dropdown-item" href="{% url "logout" %}?next={{ request.path }}">Log out</a>
+	  <a class="dropdown-item" href="{% url "update_wiki_prefs" %}">Set preferences</a>
           {% else %}
 	  <a class="dropdown-item" href="{% url "social:begin" "mediawiki"%}?next={{ request.path }}">Log in</a>
           {% endif %}
