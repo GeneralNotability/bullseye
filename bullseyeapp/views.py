@@ -99,7 +99,60 @@ def get_ip_info(request, ip):
     return render(request, 'bullseye/ip.html', context)
 
 def get_ip_range_info(request, ip, cidr):
-    return HttpResponse(f'Details of {ip}/{cidr}')
+    if not request.user.is_authenticated:
+        return render(request, 'bullseye/notauthed.html')
+    context = {}
+    context['searched_range'] = ip + '/' + str(cidr)
+    context['ip'] = ip
+    context['data_sources'] = {}
+    context['geoips'] = {
+        'type': 'FeatureCollection',
+        'features': []
+    }
+
+    with ThreadPool() as pool:
+        queries = []
+        # TODO: cache this in the User model somehow
+        userrights_query = pool.apply_async(utils.get_userrights, (request.user,))
+
+        queries.append(pool.apply_async(utils.get_whois_data, (ip,)))
+        queries.append(pool.apply_async(utils.get_maxmind_data, (ip,)))
+        queries.append(pool.apply_async(utils.get_rdns, (ip,)))
+        queries.append(pool.apply_async(utils.get_ipcheck_data, (ip,)))
+        queries.append(pool.apply_async(utils.get_bgpview_data, (ip,)))
+    
+        # Need the wiki query to finish to get the target wikis and access rights
+        userrights_ctx = userrights_query.get()
+        always_merger.merge(context, userrights_ctx)
+        if 'usergroups' in request.session and request.session['usergroups']:
+            usergroups = request.session['usergroups']
+        else:
+            userdata = ExtraUserData.objects.get(user=request.user)
+            usergroups = []
+            # Convert to list - we can't serialize userdata as-is
+            for group in userdata.userrights.all():
+                usergroups.append(group.name)
+            request.session['usergroups'] = usergroups
+        queries.append(pool.apply_async(utils.get_relevant_blocks, (ip, context['targetwikis'])))
+    
+        if 'steward' in usergroups or 'checkuser' in usergroups or 'staff' in usergroups or \
+                request.user.groups.filter(name='trusted').count():
+            queries.append(pool.apply_async(utils.get_spur_data, (ip,)))
+    
+        if 'steward' in usergroups or 'checkuser' in usergroups or 'staff' in usergroups or 'sysop' in usergroups or 'global-sysop' in usergroups or \
+                request.user.groups.filter(name='trusted').count():
+            queries.append(pool.apply_async(utils.get_shodan_data, (ip,)))
+
+        for query in queries:
+            query_ctx = query.get()
+            always_merger.merge(context, query_ctx)
+
+        
+    utils.increment_user_queries(request.user)
+    context['cdnjs'] = settings.CDNJS
+    if hasattr(settings, 'MAPSERVER') and settings.MAPSERVER:
+        context['mapserver'] = settings.MAPSERVER
+    return render(request, 'bullseye/ip_range.html', context)
 
 @require_http_methods(['GET', 'POST'])
 def update_wiki_prefs(request):

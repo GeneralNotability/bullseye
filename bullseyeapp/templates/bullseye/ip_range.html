@@ -1,0 +1,41 @@
+{% extends 'bullseye/base.html' %}
+{% load bootstrap5 %}
+
+
+{% block title %}
+{{ searched_range }}
+{% endblock %}
+
+
+{% block content %}
+
+<p>Range: {{ range|default:'unknown' }}<br />
+Location: {{ location|default:'unknown' }}<br />
+Hostname: {{ rdns|default:'unknown' }}<br />
+ISP: {{ isp|default:'unknown' }}</p>
+{% if mapserver %}
+{% include 'bullseye/map.html' %}
+{% endif %}
+
+<div class="accordion">
+{% include 'bullseye/data_components/blocks.html' %}
+{% if data_sources.whois %}
+  {% include 'bullseye/data_components/whois.html' %}
+{% endif %}
+{% if data_sources.maxmind %}
+  {% include 'bullseye/data_components/maxmind.html' %}
+{% endif %}
+{% if data_sources.ipcheck %}
+  {% include 'bullseye/data_components/ipcheck.html' %}
+{% endif %}
+{% if data_sources.spur %}
+  {% include 'bullseye/data_components/spur.html' %}
+{% endif %}
+{% if data_sources.shodan %}
+  {% include 'bullseye/data_components/shodan.html' %}
+{% endif %}
+{% if data_sources.bgpview %}
+  {% include 'bullseye/data_components/bgpview.html' %}
+{% endif %}
+</div>
+{% endblock %}
