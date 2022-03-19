@@ -23,7 +23,12 @@
       <p>Device behaviors: {{ spur.behaviors }}</p>
       {% endif %}
       {% if spur.wifi.exists %}
-      <p>Associated SSIDs: {{ spur.ssids }}</p>
+      <p>Associated SSIDs:</p>
+      <ul>
+      {% for ssid in spur.ssids %}
+      <li><a href="https://wigle.net/map?maplat=0&maplon=0&mapzoom=2&mapstyle=grey&coloring=density&ssid={{ ssid }}">{{ ssid }}</a></li>
+      {% endfor %}
+      </ul>
       {% endif %}
       <p>Infrastructure: {{ spur.infrastructure }}</p>
 

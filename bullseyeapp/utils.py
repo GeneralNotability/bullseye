@@ -258,8 +258,7 @@ def get_spur_data(ip):
 
         if result['wifi']['exists']:
             summary.append('wifi')
-            # Prettify
-            context['spur']['ssids'] = ', '.join(result['wifi']['ssids'])
+            context['spur']['ssids'] = result['wifi']['ssids']
 
         context['spur']['summary'] = ', '.join(summary)
 
