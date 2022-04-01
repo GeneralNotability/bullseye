@@ -18,7 +18,7 @@
           <div id="collapseBlocksGlobal" class="accordion-collapse collapse" aria-labelledby="headingBlocksGlobal">
             <div class="accordion-body">
               {% for entry in globalblocks %}
-	      <p>{{ entry.address }} <a href="https://meta.wikimedia.org/wiki/Special:Log?type=gblblock&page={{ entry.address | urlencode}}">blocked</a> ({{entry.reason}}) by {{ entry.by }} until {{ entry.expiry }}</p>
+	      <p>{{ entry.address }} <a href="https://meta.wikimedia.org/wiki/Special:Log?type=gblblock&page={{ entry.address | urlencode}}">blocked</a> ({{entry.reason}}) on {{ entry.timestamp }} by {{ entry.by }} until {{ entry.expiry }}</p>
               {% endfor %}
             </div>
           </div>
