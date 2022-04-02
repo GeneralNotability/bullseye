@@ -8,7 +8,7 @@ Bullseye
 
 
 {% block content %}
-<form action=>
+<form onsubmit="return doSearch()">
   <div class="form-group">
     <label for="inputIP">IP Address</label>
     <input type="text" class="form-control" id="inputIP" aria-describedby="ipHelp" placeholder="IP">
@@ -18,12 +18,9 @@ Bullseye
 </form>
 
 <script>
-// TODO: figure out how to do this right
-document.getElementById("submitBtn").onclick = doSearch;
-
 function doSearch() {
     const ip = document.getElementById("inputIP").value;
-    window.location = "{{ request.path }}" + 'ip/' + ip;
+    window.location = '/ip/' + ip;
     return false;
 }
 </script>

@@ -19,6 +19,12 @@
 	  <a class="dropdown-item" href="{% url "dartboard" %}">Dartboard</a>
         </div>
       </span>
+      <form class="d-flex" onsubmit="return doSearchNav()">
+        <div class="form-group">
+          <input type="text" class="form-control" id="inputIPNav" placeholder="IP address">
+        </div>
+        <button id="submitBtnNav" type="submit" class="btn btn-primary ms-2">Search</button>
+      </form>
       <span class="nav-item dropdown ms-auto mx-2">
         <a class="nav-link dropdown-toggle text-light" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
           {% if user.is_authenticated %}
@@ -58,4 +64,12 @@
     </div>
     <!-- Copyright -->
   </footer>
+
+  <script>
+    function doSearchNav() {
+      const ip = document.getElementById("inputIPNav").value;
+      window.location = '/ip/' + ip;
+      return false;
+    }
+  </script>
 {% endblock %}
