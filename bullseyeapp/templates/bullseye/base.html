@@ -2,7 +2,10 @@
 
 {% load bootstrap5 %}
 {% load static %}
+
+{% block bootstrap5_extra_head %}
 <link rel="shortcut icon" type="image/svg" href="{% static 'bullseye/logo.svg' %}"/>
+{% endblock %}
 
 {% block bootstrap5_content %}
   <div class="container">
