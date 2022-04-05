@@ -12,6 +12,7 @@ from django.views.decorators.http import require_http_methods
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import permissions
+from rest_framework.authtoken.models import Token
 
 from . import forms
 from . import utils
@@ -223,7 +224,8 @@ def update_wiki_prefs(request):
     else:
         # Doing this to force default group creation if needed
         form = forms.WikiForm(choices=sites, initial={'wikis': list(userrights['targetwikis'])})
-    return render(request, 'bullseye/wikiprefs.html', {'form': form, 'cdnjs': settings.CDNJS})
+    token = Token.objects.get_or_create(user=request.user)[0]
+    return render(request, 'bullseye/wikiprefs.html', {'form': form, 'cdnjs': settings.CDNJS, 'token': token.key})
 
 def logout_view(request):
     logout(request)

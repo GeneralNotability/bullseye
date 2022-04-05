@@ -138,3 +138,10 @@ CDNJS = 'https://cdnjs.cloudflare.com'
 MAPSERVER = ''
 
 SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+         'rest_framework.authentication.SessionAuthentication',
+         'rest_framework.authentication.TokenAuthentication'
+    ]
+}
