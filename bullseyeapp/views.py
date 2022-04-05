@@ -6,9 +6,12 @@ from multiprocessing.pool import ThreadPool
 from django.conf import settings
 from django.contrib.auth import logout
 from django.db.models import Q
-from django.http import HttpResponse
+from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from rest_framework import permissions
 
 from . import forms
 from . import utils
@@ -42,10 +45,7 @@ def dartboard(request):
     context['errors'] = errors
     return render(request, 'bullseye/dartboard-map.html', context)
 
-
 def get_ip_info(request, ip):
-    if not request.user.is_authenticated:
-        return render(request, 'bullseye/notauthed.html')
     context = {}
     context['ip'] = ip
     context['data_sources'] = {}
@@ -91,12 +91,41 @@ def get_ip_info(request, ip):
             query_ctx = query.get()
             always_merger.merge(context, query_ctx)
 
-        
     utils.increment_user_queries(request.user)
+    return context
+
+def render_ip_info(request, ip):
+    if not request.user.is_authenticated:
+        return render(request, 'bullseye/notauthed.html')
+    context = get_ip_info(request, ip)
     context['cdnjs'] = settings.CDNJS
     if hasattr(settings, 'MAPSERVER') and settings.MAPSERVER:
         context['mapserver'] = settings.MAPSERVER
     return render(request, 'bullseye/ip.html', context)
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def rest_ip_info(request, ip):
+    context = get_ip_info(request, ip)
+    # sanitize - don't give people the full shodan dump
+    if 'shodan' in context and 'data' in context['shodan']:
+        del context['shodan']['data']
+    return Response(context)
+
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def rest_bulk_ip_info(request):
+    if not request.user.is_authenticated:
+        return render(request, 'bullseye/notauthed.html')
+    ret = {}
+    for ip in request.POST:
+        context = get_ip_info(request, ip)
+        # sanitize - don't give people the full shodan dump
+        if 'shodan' in context and 'data' in context['shodan']:
+            del context['shodan']['data']
+        ret[ip] = context
+    return Response(ret)
 
 def get_ip_range_info(request, ip, cidr):
     if not request.user.is_authenticated:
