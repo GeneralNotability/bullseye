@@ -111,8 +111,10 @@ def get_whois_data(ip):
             return context
 
     context['whois'] = result
-    context['isp'] = result['asn_description']
-    context['range'] = result['asn_cidr']
+    if 'asn_description' in result:
+        context['isp'] = result['asn_description']
+    if 'asn_cidr' in result:
+        context['range'] = result['asn_cidr']
     if 'geo_ipinfo' in result:
         context['location'] = result['geo_ipinfo']
     context['data_sources']['whois'] = True
