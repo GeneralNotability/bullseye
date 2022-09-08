@@ -4,7 +4,7 @@ import json
 import requests
 import socket
 from multiprocessing.pool import ThreadPool
-from requests.exceptions import HTTPError
+from requests.exceptions import HTTPError, ReadTimeout
 
 import shodan
 from django.conf import settings
@@ -101,11 +101,11 @@ def get_whois_data(ip):
                 'lookup': 'true',
                 'format': 'json'
             }
-            r = requests.get('https://whois-referral.toolforge.org/w/gateway.py', params=payload)
+            r = requests.get('https://whois-referral.toolforge.org/w/gateway.py', params=payload, timeout=5)
             r.raise_for_status()
             result = r.json()
             cache.set(cache_key, result, 86400)
-        except HTTPError as e:
+        except (HTTPError, ReadTimeout) as e:
             print(e)
             context['data_sources']['whois'] = False
             return context
@@ -180,11 +180,11 @@ def get_ipcheck_data(ip):
         result = cache.get(cache_key)
         if not result:
             try:
-                r = requests.get(f'https://ipcheck.toolforge.org/index.php?ip={ip}&api=true&key={settings.IPCHECK_KEY}')
+                r = requests.get(f'https://ipcheck.toolforge.org/index.php?ip={ip}&api=true&key={settings.IPCHECK_KEY}', timeout=5)
                 r.raise_for_status()
                 result = r.json()
                 cache.set(cache_key, result, 86400)
-            except HTTPError:
+            except (HTTPError, ReadTimeout) as e::
                 context['data_sources']['ipcheck'] = False
                 return context
 
@@ -219,11 +219,11 @@ def get_spur_data(ip):
         result = cache.get(cache_key)
         if not result:
             try:
-                r = requests.get(f'https://api.spur.us/v1/context/{ip}', headers={'Token': settings.SPUR_KEY})
+                r = requests.get(f'https://api.spur.us/v1/context/{ip}', headers={'Token': settings.SPUR_KEY}, timeout=5)
                 r.raise_for_status()
                 result = r.json()
                 cache.set(cache_key, result, 86400)
-            except HTTPError as e:
+            except (HTTPError, ReadTimeout) as e:
                 print(e)
                 context['data_sources']['spur'] = False
                 return context
@@ -441,14 +441,14 @@ def get_bgpview_data(ip):
     result = cache.get(cache_key)
     if not result:
         try:
-            r = requests.get(f'https://api.bgpview.io/ip/{ip}')
+            r = requests.get(f'https://api.bgpview.io/ip/{ip}', timeout=5)
             r.raise_for_status()
             result = r.json()['data']
             if r.json()['status'] != 'ok':
                 context['data_sources']['bgpview'] = False
                 return context
             cache.set(cache_key, result, 86400)
-        except Exception as e:
+        except (HTTPError, ReadTimeout) as e:
             print(e)
             context['data_sources']['bgpview'] = False
             return context
