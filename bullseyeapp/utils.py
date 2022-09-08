@@ -184,7 +184,7 @@ def get_ipcheck_data(ip):
                 r.raise_for_status()
                 result = r.json()
                 cache.set(cache_key, result, 86400)
-            except (HTTPError, ReadTimeout) as e::
+            except (HTTPError, ReadTimeout) as e:
                 context['data_sources']['ipcheck'] = False
                 return context
 
