@@ -312,6 +312,8 @@ def get_shodan_data(ip):
             summary.append('webhost')
         if 1194 in result['ports']:
             summary.append('OpenVPN')
+        if 1723 in result['ports']:
+            summary.append('PPTP')
         if 3128 in result['ports']:
             summary.append('squid')
 
