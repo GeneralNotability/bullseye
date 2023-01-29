@@ -165,11 +165,11 @@ def get_ip_range_info(request, ip, cidr):
             request.session['usergroups'] = usergroups
         queries.append(pool.apply_async(utils.get_relevant_blocks, (ip, context['targetwikis'])))
     
-        if 'steward' in usergroups or 'checkuser' in usergroups or 'staff' in usergroups or \
+        if 'steward' in usergroups or 'checkuser' in usergroups or 'staff' in usergroups or 'accountcreator' in usergroups or \
                 request.user.groups.filter(name='trusted').count():
             queries.append(pool.apply_async(utils.get_spur_data, (ip,)))
     
-        if 'steward' in usergroups or 'checkuser' in usergroups or 'staff' in usergroups or 'sysop' in usergroups or 'global-sysop' in usergroups or \
+        if 'steward' in usergroups or 'checkuser' in usergroups or 'staff' in usergroups or 'sysop' in usergroups or 'global-sysop' in usergroups or 'accountcreator' in usergroups or\
                 request.user.groups.filter(name='trusted').count():
             queries.append(pool.apply_async(utils.get_shodan_data, (ip,)))
 
