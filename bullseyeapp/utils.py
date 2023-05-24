@@ -250,15 +250,15 @@ def get_spur_data(ip):
             # Prettify
             context['spur']['vpns'] = ', '.join([x['name'] for x in result['vpnOperators']['operators']])
 
-        if result['deviceBehaviors']['exists']:
+        if 'deviceBehaviors' in result and result['deviceBehaviors']['exists']:
             context['spur']['behaviors'] = ', '.join([x['name'] for x in result['deviceBehaviors']['behaviors']])
 
-        if result['proxiedTraffic']['exists']:
+        if 'proxiedTraffic' in result and result['proxiedTraffic']['exists']:
             summary.append('callback proxy')
             # Prettify
             context['spur']['proxies'] = ', '.join([f'{x["name"]} ({x["type"]})' for x in result['proxiedTraffic']['proxies']])
 
-        if result['wifi']['exists']:
+        if 'wifi' in result and result['wifi']['exists']:
             summary.append('wifi')
             context['spur']['ssids'] = result['wifi']['ssids']
 
