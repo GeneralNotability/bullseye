@@ -4,7 +4,7 @@ async-timeout==3.0.1
 attrs==21.2.0
 beautifulsoup4==4.9.3
 certifi==2023.7.22
-cffi==1.14.6
+cffi==1.15.1
 chardet==4.0.0
 charset-normalizer==2.0.4
 click==8.0.1
@@ -23,7 +23,7 @@ httplib2==0.19.1
 idna==3.2
 importlib-metadata==3.10.1
 maxminddb==2.0.3
-multidict==5.1.0
+multidict==6.0.4
 oauth2==1.9.0.post1
 oauthlib==3.2.2
 pycparser==2.20
@@ -43,5 +43,5 @@ sqlparse==0.4.1
 typing-extensions==3.10.0.0
 urllib3==1.26.6
 XlsxWriter==3.0.1
-yarl==1.6.3
+yarl==1.9.2
 zipp==3.5.0
