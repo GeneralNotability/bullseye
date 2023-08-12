@@ -25,7 +25,7 @@ importlib-metadata==3.10.1
 maxminddb==2.0.3
 multidict==5.1.0
 oauth2==1.9.0.post1
-oauthlib==3.1.1
+oauthlib==3.2.2
 pycparser==2.20
 PyJWT==2.1.0
 pyparsing==2.4.7
