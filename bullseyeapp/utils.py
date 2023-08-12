@@ -67,6 +67,8 @@ def get_userrights(user):
             userrights.add('global-sysop')
         if 'staff' in result['query']['globaluserinfo']['groups']:
             userrights.add('staff')
+        if 'sysadmin' in result['query']['globaluserinfo']['groups']:
+            userrights.add('staff')  # Sysadmins get staff-level access
     except HTTPError as e:
         print(e)
     if userdata.targetwikis:
