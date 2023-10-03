@@ -43,7 +43,7 @@ social-auth-core==4.1.0
 soupsieve==2.2.1
 sqlparse==0.4.4
 typing-extensions==3.10.0.0
-urllib3==1.26.6
+urllib3==1.26.17
 XlsxWriter==3.0.1
 yarl==1.9.2
 zipp==3.5.0
