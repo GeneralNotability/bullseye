@@ -14,7 +14,7 @@ colorama==0.4.4
 cryptography==41.0.4
 deepmerge==0.3.0
 defusedxml==0.7.1
-Django==3.2.23
+Django==3.2.24
 django-bootstrap-v5==1.0.5
 django-picklefield==3.0.1
 django-social-auth==0.7.28
