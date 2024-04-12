@@ -22,7 +22,7 @@ djangorestframework==3.13.1
 frozenlist==1.4.0
 geoip2==4.2.0
 httplib2==0.19.1
-idna==3.2
+idna==3.7
 importlib-metadata==3.10.1
 maxminddb==2.0.3
 multidict==6.0.4
